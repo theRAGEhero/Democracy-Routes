@@ -34,14 +34,16 @@ Feature: Problem solving
             | 1           |
             | 2           |
 
-    Scenario: grouping similar round tables to a virtual route
-        Given there is a problem "How to build a decision making system"
-        And there is a "Route 1" for this problem
-        And there is a "Round Table 1" for this route
-        And there is a "Route 2" for this problem
-        And there is a "Round Table 2" for this route
-        When "Round Table 1" and "Round Table 2" have similar topics
+    Scenario: grouping similar issues to a virtual route
+        Given there is a topic "not enough money"
+        And there is a "Round Table 1" about this topic
+        And there is a "Round Table 2" about this topic
+        And they both <relates> to the same problem
         Then they becomes grouped in to the same "Virtual Route"
+        Examples:
+            | <relates> |
+            | yes       |
+            | no        |
 
     Scenario: Searching experts
         Given a person named "Alex"
