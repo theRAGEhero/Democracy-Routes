@@ -23,20 +23,16 @@ Feature: Problem solving
             | accept   | reuse_route |
             | decline  | new_problem |
 
-    Scenario Outline: ability to reuse a round table of an already existing problem
+    Scenario Outline: ability to create a new round table
         Given there is a problem "How to build a decision making system"
-        And this problem has a "Route"
-        And this "Route" has a "Round Table"
-        When "Dima" creates a similar problem "How to build an automated decision making system"
-        Then he receives a suggestion to reuse the "Route" for the existing problem
-        When he accepts this suggestion
-        Then he receives a suggestion to reuse the "Round Table" for the accepted route
-        And he makes a <decision>
-        And he gets the <result>
+        And this problem has round tables "Round Table-1" and "Round Table-2"
+        When "Dima" creates a new round table for this problem
+        Then he can choose to descend it from the <round table>
+        And he creates "Round Table-3" descended from the <round table>
         Examples:
-            | decision | result            |
-            | accept   | reuse_round_table |
-            | decline  | new_round_table   |
+            | round table |
+            | 1           |
+            | 2           |
 
     Scenario: grouping similar round tables to a virtual route
         Given there is a problem "How to build a decision making system"
