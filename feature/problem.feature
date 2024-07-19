@@ -74,3 +74,4 @@ Feature: Problem solving
         When the patricipants sign it
         Then the discussion becomes signed
         And the patricipants can no longer change it's summary
+        And the patricipants receive recommendations with further possible steps to solve the problem
