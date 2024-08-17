@@ -1,0 +1,168 @@
+<html itemscope itemtype="http://schema.org/Product" prefix="og: http://ogp.me/ns#" xmlns="http://www.w3.org/1999/html">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+</head>
+
+<style>
+    body,
+    button {
+        background-color: hsl(0, 0%, 40%);
+    }
+</style>
+
+<body>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://meet.jit.si/libs/lib-jitsi-meet.min.js"></script>
+    <div>
+        <h2>lib-jitsi-meet API Example on meet.jit.si</h2>
+        <p>
+            Go to <a id="jitsi_meeting_link" target="_blank"></a> and
+            then click
+            Join below.
+        </p>
+        <button id="lib_jitsi_meet_join">Join</button>
+        <button id="lib_jitsi_meet_leave">Leave</button>
+    </div>
+    </div>
+    <div id="meet"></div>
+
+    <script>
+        const roomName = "af5336de-fd64-41eb-876f-7c55b5b65e5b@conference.meet.jit.si";
+        const fullRoomName = roomName;
+        const targetNode = document.querySelector("#meet");
+        const domain = "meet.jit.si";
+        const remoteTracks = {};
+
+        let connection = null;
+        let isJoined = false;
+        let room = null;
+        let localTracks = [];
+        let participantIds = new Set();
+        let localVideoElement = null;
+
+        let jitsiMeetingLink = document.querySelector("#jitsi_meeting_link");
+        jitsiMeetingLink.setAttribute("href", "https://meet.jit.si/" + roomName);
+        jitsiMeetingLink.innerHTML = "meet.jit.si/" + roomName;
+
+        JitsiMeetJS.init();
+
+        const options = {
+            hosts: {
+                domain: domain,
+                muc: `conference.${domain}`,
+                focus: `focus.${domain}`
+            },
+            serviceUrl: `https://${domain}/http-bind?room=${roomName}`, // Note: wss not avail on meet.jit.si
+            clientNode: "http://jitsi.org/jitsimeet"
+        };
+
+        connection = new JitsiMeetJS.JitsiConnection(null, null, options);
+
+        function onConnectionSuccess() {
+            const confOptions = {
+                enableLayerSuspension: true,
+                p2p: {
+                    enabled: false
+                }
+            };
+
+            room = connection.initJitsiConference(fullRoomName, confOptions);
+
+            room.on(JitsiMeetJS.events.conference.TRACK_ADDED, (track) => {
+                if (!track.isLocal()) {
+                    const participant = track.getParticipantId();
+
+                    if (!remoteTracks[participant]) {
+                        remoteTracks[participant] = [];
+                    }
+                    const idx = remoteTracks[participant].push(track);
+                    const id = participant + track.getType() + idx;
+                    const remoteVideo = document.createElement("video");
+                    remoteVideo.autoplay = true;
+                    remoteVideo.id = `${participant}_video_${id}`;
+                    track.attach(remoteVideo);
+                    targetNode.appendChild(remoteVideo);
+                }
+            });
+
+            room.on(JitsiMeetJS.events.conference.CONFERENCE_JOINED, () => {
+                console.log("conference joined!");
+                isJoined = true;
+                localTracks.forEach((track) => room.addTrack(track));
+            });
+
+            room.on(JitsiMeetJS.events.conference.USER_JOINED, (id) => {
+                console.log("user joined");
+                participantIds.add(id);
+                room.selectParticipants(Array.from(participantIds));
+            });
+
+            room.on(JitsiMeetJS.events.conference.USER_LEFT, (id) => {
+                console.log("user left");
+                participantIds.delete(id);
+                room.selectParticipants(Array.from(participantIds));
+            });
+
+            room.join();
+            room.setReceiverVideoConstraint(720);
+        }
+
+        connection.addEventListener(
+            JitsiMeetJS.events.connection.CONNECTION_ESTABLISHED,
+            () => {
+                console.log("Connection established");
+                onConnectionSuccess();
+            }
+        );
+
+        connection.addEventListener(
+            JitsiMeetJS.events.connection.CONNECTION_FAILED,
+            () => {
+                console.log("Connection failed");
+            }
+        );
+
+        connection.addEventListener(
+            JitsiMeetJS.events.connection.CONNECTION_DISCONNECTED,
+            () => {
+                console.log("disconnect!");
+
+                localTracks.forEach((track) => track.dispose());
+                room?.leave();
+                connection?.disconnect();
+            }
+        );
+
+        document.querySelector("button#lib_jitsi_meet_join").onclick = () => {
+
+            console.log(options);
+
+            connection.connect();
+
+            JitsiMeetJS.createLocalTracks({ devices: ["audio", "video"] })
+                .then((localTracks) => {
+                    const localVideoElem = document.createElement("video");
+                    localVideoElem.autoplay = true;
+                    localTracks.forEach((localTrack) => {
+                        console.log(localTrack);
+                        localTrack.attach(localVideoElem);
+                        if (isJoined) room.addTrack(localTrack);
+                    });
+                    targetNode.appendChild(localVideoElem);
+                    localVideoElement = localVideoElem;
+                })
+                .catch((error) => {
+                    throw error;
+                });
+        };
+
+        document.querySelector("button#lib_jitsi_meet_leave").onclick = () => {
+            connection.disconnect();
+            localVideoElement.remove();
+        }
+    </script>
+</body>
+
+</html>
