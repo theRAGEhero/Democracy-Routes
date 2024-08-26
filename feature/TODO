@@ -1,6 +1,16 @@
 Implement the "Problem discussion" feature.
 
-Helpful resources:
+- [x] Record audio on the client in browser.
+- [ ] Test the client.
+- [ ] Start audio recording on entering a meeteng.
+- [ ] End audio recording on leaving a meeting.
+- [ ] Pass audio stream from client to server.
+- [ ] Test the server.
+- [ ] Create a text transcript of the meeting.
+- [ ] Create a summary of the meeting.
+
+Helpful resources.
+
 https://jitsi.github.io/handbook/docs/dev-guide/dev-guide-ljm-api/
 https://github.com/jitsi/lib-jitsi-meet
 https://localai.io/features/audio-to-text/
