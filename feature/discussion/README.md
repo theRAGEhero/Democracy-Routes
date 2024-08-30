@@ -11,7 +11,7 @@ They start a meeting by calling each other.
 Right now the tool for setting up the call is Jitsi Meet, 
 but we might change it later or provide several options.
 
-When a person starts the call our, client app starts 
+When a person starts the call our client app starts 
 streaming their audio to our server.
 
 ## Server
