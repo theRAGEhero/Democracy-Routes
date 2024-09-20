@@ -1,6 +1,6 @@
 let ref;
 
-window.onload = () => {
+window.onload = async () => {
     // const api = new JitsiMeetExternalAPI("8x8.vc", {
     //     roomName: "[sensitive_data]",
     //     parentNode: document.querySelector('#jaas-container'),
@@ -9,50 +9,39 @@ window.onload = () => {
     //     // jwt: [sensitive_data]
     // });
 
-    // document.querySelector('#info').onclick = () => {
-    //     console.log("supported commands:");
-    //     console.log(api.getSupportedCommands());
+    var pc = new RTCPeerConnection();
 
-    //     console.log("supported events:");
-    //     console.log(api.getSupportedEvents());
+    var stream = new MediaStream();
 
-    //     console.log("available devices:");
-    //     api.getAvailableDevices().then(devices => {
-    //         console.log(devices);
+    document.querySelector('#start').onclick = async () => {
+        pc = new RTCPeerConnection();
 
-    //         ref = devices;
-    //     });
-    // }
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        const recorder = new MediaRecorder(stream);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
 
-        let recorded = [];
+        const response = await fetch("http://localhost:8080/offer", {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(offer),
+        })
 
-        recorder.ondataavailable = (e) => {
-            recorded.push(e.data);
+        if (!response.ok) {
+            throw new Error("bad response: " + response.status);
         }
 
-        recorder.onstop = () => {
-            const blob = new Blob(recorded, { type: "audio/ogg; codecs=opus" });
-            recorded = [];
+        const answer = await response.json();
+        await pc.setRemoteDescription(answer);
+    }
 
-            const audioURL = window.URL.createObjectURL(blob);
+    document.querySelector('#stop').onclick = () => {
+        pc.close();
 
-            const audio = document.createElement("audio");
-            audio.src = audioURL;
-            audio.controls = true;
-
-            const container = document.querySelector('#recorded');
-            container.appendChild(audio);
-        }
-
-        document.querySelector('#start').onclick = () => {
-            recorder.start();
-        }
-
-        document.querySelector('#stop').onclick = () => {
-            recorder.stop();
-        }
-    });
+        stream.getTracks().forEach(track => track.stop());
+    }
 }
