@@ -23,7 +23,7 @@ import (
 func TestServer(t *testing.T) {
 	t.Parallel()
 
-	t.Run("adding a new user", func(t *testing.T) {
+	t.Run("new user", func(t *testing.T) {
 		t.Parallel()
 
 		userH, err := userhandler.New(make(map[string]*usermodel.User))
@@ -45,7 +45,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, u.Name, u2.Name, "wrong user name")
 	})
 
-	t.Run("authorization", func(t *testing.T) {
+	t.Run("user authorization", func(t *testing.T) {
 		t.Parallel()
 
 		userH, err := userhandler.New(make(map[string]*usermodel.User))
@@ -77,7 +77,7 @@ func TestServer(t *testing.T) {
 		assert.NotEmpty(t, auth.Token, "no authorization token")
 	})
 
-	t.Run("meeting", func(t *testing.T) {
+	t.Run("new meeting", func(t *testing.T) {
 		t.Parallel()
 
 		userH, err := userhandler.New(make(map[string]*usermodel.User))
