@@ -101,6 +101,14 @@ func (r *userRepo) GetUser(id string) (*user, error) {
 func testServer(tb testing.TB) string {
 	tb.Helper()
 
+	port := randomPort(tb)
+
+	startServer(tb, port)
+
+	return fmt.Sprintf("http://localhost:%d", port)
+}
+
+func startServer(tb testing.TB, port int) {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
@@ -132,15 +140,11 @@ func testServer(tb testing.TB) string {
 		require.NoError(tb, srv.Shutdown(context.TODO()), "shutting down server")
 	})
 
-	addr := fmt.Sprintf("localhost:%d", randomPort(tb))
-
-	srv.Addr = addr
+	srv.Addr = fmt.Sprintf("localhost:%d", port)
 
 	srv.Handler = mux
 
 	go srv.ListenAndServe()
-
-	return "http://" + addr
 }
 
 func randomPort(tb testing.TB) int {

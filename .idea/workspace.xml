@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f572c4e6-8d4a-4243-8ab5-c8b6e08b5406" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/feature/discussion/server/server_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/feature/discussion/server/server_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,6 +42,11 @@
     "nodejs_package_manager_path": "npm"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="GoMoveDeclarationDialog.RECENT_KEY">
+      <recent name="$PROJECT_DIR$/feature/discussion/server/httpapi" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="TestServer in github.com/theRAGEhero/Democracy-Routes/feature/discussion/server" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Democracy-Routes" />
