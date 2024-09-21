@@ -12,16 +12,18 @@ import (
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
 )
 
-func StartServer(tb testing.TB, port int) {
+func Start(tb testing.TB, port int) {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
-		tb.Helper()
-
 		var auth model.UserAuthorizationResponse
 		auth.Token = "authorized"
 
-		require.NoError(tb, json.NewEncoder(w).Encode(auth), "encoding authorization response")
+		if err := json.NewEncoder(w).Encode(auth); err != nil {
+			http.Error(w, "encoding authorization response: "+err.Error(), http.StatusInternalServerError)
+
+			return
+		}
 	})
 
 	mux.HandleFunc("POST /meeting", func(w http.ResponseWriter, r *http.Request) {

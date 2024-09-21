@@ -92,7 +92,7 @@ func testServer(tb testing.TB) string {
 
 	port := randomPort(tb)
 
-	httpapi.StartServer(tb, port)
+	httpapi.Start(tb, port)
 
 	return fmt.Sprintf("http://localhost:%d", port)
 }
