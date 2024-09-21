@@ -2,12 +2,14 @@ package server_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -92,9 +94,31 @@ func testServer(tb testing.TB) string {
 
 	port := randomPort(tb)
 
-	httpapi.Start(tb, port)
+	shutdown := httpapi.Start(port)
 
-	return fmt.Sprintf("http://localhost:%d", port)
+	tb.Cleanup(func() {
+		tb.Helper()
+
+		require.NoError(tb, shutdown(context.TODO()), "shutting down http api")
+	})
+
+	addr := fmt.Sprintf("http://localhost:%d", port)
+
+	for i := 0; ; i++ {
+		res, _ := http.Get(addr + "/health")
+
+		if res != nil && res.StatusCode == http.StatusOK {
+			break
+		}
+
+		if i > 30 {
+			tb.Fatal("http api failed to start")
+		}
+
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	return addr
 }
 
 func randomPort(tb testing.TB) int {

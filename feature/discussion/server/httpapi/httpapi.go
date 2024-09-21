@@ -5,15 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"testing"
-
-	"github.com/stretchr/testify/require"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
 )
 
-func Start(tb testing.TB, port int) {
+func Start(port int) func(ctx context.Context) error {
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	mux.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
 		var auth model.UserAuthorizationResponse
@@ -48,13 +49,11 @@ func Start(tb testing.TB, port int) {
 
 	var srv http.Server
 
-	tb.Cleanup(func() {
-		require.NoError(tb, srv.Shutdown(context.TODO()), "shutting down server")
-	})
-
 	srv.Addr = fmt.Sprintf("localhost:%d", port)
 
 	srv.Handler = mux
 
 	go srv.ListenAndServe()
+
+	return srv.Shutdown
 }
