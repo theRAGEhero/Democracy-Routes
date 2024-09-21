@@ -27,17 +27,23 @@ func Start(tb testing.TB, port int) {
 	})
 
 	mux.HandleFunc("POST /meeting", func(w http.ResponseWriter, r *http.Request) {
-		tb.Helper()
-
 		var nm model.CreateMeeting
 
-		require.NoError(tb, json.NewDecoder(r.Body).Decode(&nm), "decoding request")
+		if err := json.NewDecoder(r.Body).Decode(&nm); err != nil {
+			http.Error(w, "decoding request: "+err.Error(), http.StatusBadRequest)
+
+			return
+		}
 
 		var m model.Meeting
 		m.ID = "id"
 		m.Name = nm.Name
 
-		require.NoError(tb, json.NewEncoder(w).Encode(m), "encoding response")
+		if err := json.NewEncoder(w).Encode(m); err != nil {
+			http.Error(w, "encoding response: "+err.Error(), http.StatusInternalServerError)
+
+			return
+		}
 	})
 
 	var srv http.Server
