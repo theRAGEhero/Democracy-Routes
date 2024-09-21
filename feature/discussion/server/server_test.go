@@ -2,9 +2,11 @@ package server_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
+	"net"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -124,9 +126,33 @@ func testServer(tb testing.TB) string {
 		require.NoError(tb, json.NewEncoder(w).Encode(m), "encoding response")
 	})
 
-	srv := httptest.NewServer(mux)
+	var srv http.Server
 
-	tb.Cleanup(srv.Close)
+	tb.Cleanup(func() {
+		require.NoError(tb, srv.Shutdown(context.TODO()), "shutting down server")
+	})
 
-	return srv.URL
+	addr := fmt.Sprintf("localhost:%d", randomPort(tb))
+
+	srv.Addr = addr
+
+	srv.Handler = mux
+
+	go srv.ListenAndServe()
+
+	return "http://" + addr
+}
+
+func randomPort(tb testing.TB) int {
+	tb.Helper()
+
+	l, err := net.Listen(
+		"tcp", // network
+		"",    // address: The address is empty to force random port selection.
+	)
+	require.NoError(tb, err, "listening")
+
+	require.NoError(tb, l.Close(), "closing listener")
+
+	return l.Addr().(*net.TCPAddr).Port
 }
