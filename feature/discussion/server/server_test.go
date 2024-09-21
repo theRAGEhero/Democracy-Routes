@@ -12,6 +12,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
 )
 
 func TestServer(t *testing.T) {
@@ -37,7 +39,7 @@ func TestServer(t *testing.T) {
 
 		// Then he can do it.
 
-		var auth userAuthorizationResponse
+		var auth model.UserAuthorizationResponse
 		require.NoError(t, json.NewDecoder(res.Body).Decode(&auth), "decoding response body")
 
 		assert.NotEmpty(t, auth.Token, "no authorization token")
@@ -56,7 +58,7 @@ func TestServer(t *testing.T) {
 
 		// When Dima creates a new meeting.
 
-		var nm newMeeting
+		var nm model.CreateMeeting
 		nm.Name = "meeting"
 
 		b, err := json.Marshal(nm)
@@ -69,7 +71,7 @@ func TestServer(t *testing.T) {
 
 		// Then he can do it.
 
-		var m meeting
+		var m model.Meeting
 		require.NoError(t, json.NewDecoder(res.Body).Decode(&m), "decoding response")
 
 		assert.NotEmpty(t, m.ID, "no meeting id")
@@ -77,20 +79,7 @@ func TestServer(t *testing.T) {
 	})
 }
 
-type newMeeting struct {
-	Name string
-}
-
-type meeting struct {
-	ID   string
-	Name string
-}
-
 type user struct{}
-
-type userAuthorizationResponse struct {
-	Token string
-}
 
 type userRepo struct{}
 
@@ -114,7 +103,7 @@ func startServer(tb testing.TB, port int) {
 	mux.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
 		tb.Helper()
 
-		var auth userAuthorizationResponse
+		var auth model.UserAuthorizationResponse
 		auth.Token = "authorized"
 
 		require.NoError(tb, json.NewEncoder(w).Encode(auth), "encoding authorization response")
@@ -123,11 +112,11 @@ func startServer(tb testing.TB, port int) {
 	mux.HandleFunc("POST /meeting", func(w http.ResponseWriter, r *http.Request) {
 		tb.Helper()
 
-		var nm newMeeting
+		var nm model.CreateMeeting
 
 		require.NoError(tb, json.NewDecoder(r.Body).Decode(&nm), "decoding request")
 
-		var m meeting
+		var m model.Meeting
 		m.ID = "id"
 		m.Name = nm.Name
 
