@@ -35,7 +35,7 @@ func TestServer(t *testing.T) {
 		t.Parallel()
 
 		var repo user.Handler
-		srv := testServer(t)
+		api := httpApi(t)
 
 		// Given there is a user Dima.
 
@@ -44,7 +44,7 @@ func TestServer(t *testing.T) {
 
 		// When Dima authorises.
 
-		res, err := http.Post(srv+"/login", "text/plain", strings.NewReader("authorization"))
+		res, err := http.Post(api+"/login", "text/plain", strings.NewReader("authorization"))
 		require.NoError(t, err, "authorizing user")
 		require.Equal(t, http.StatusOK, res.StatusCode, "wrong status code")
 		t.Cleanup(func() { require.NoError(t, res.Body.Close(), "closing response body") })
@@ -61,7 +61,7 @@ func TestServer(t *testing.T) {
 		t.Parallel()
 
 		var repo user.Handler
-		srv := testServer(t)
+		api := httpApi(t)
 
 		// Given there is a user Dima.
 
@@ -76,7 +76,7 @@ func TestServer(t *testing.T) {
 		b, err := json.Marshal(nm)
 		require.NoError(t, err, "marshalling request")
 
-		res, err := http.Post(srv+"/meeting", "application/json", bytes.NewReader(b))
+		res, err := http.Post(api+"/meeting", "application/json", bytes.NewReader(b))
 		require.NoError(t, err, "creating meeting")
 		require.Equal(t, http.StatusOK, res.StatusCode, "wrong status code")
 		t.Cleanup(func() { require.NoError(t, res.Body.Close(), "closing response body") })
@@ -91,7 +91,7 @@ func TestServer(t *testing.T) {
 	})
 }
 
-func testServer(tb testing.TB) string {
+func httpApi(tb testing.TB) string {
 	tb.Helper()
 
 	port := randomPort(tb)
