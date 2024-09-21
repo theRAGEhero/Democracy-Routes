@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi"
-	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
+	apimodel "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
 	usermodel "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler/model"
 )
@@ -71,7 +71,7 @@ func TestServer(t *testing.T) {
 
 		// Then he can do it.
 
-		var auth model.UserAuthorizationResponse
+		var auth apimodel.UserAuthorizationResponse
 		require.NoError(t, json.NewDecoder(res.Body).Decode(&auth), "decoding response body")
 
 		assert.NotEmpty(t, auth.Token, "no authorization token")
@@ -96,7 +96,7 @@ func TestServer(t *testing.T) {
 
 		// When Dima creates a new meeting.
 
-		var nm model.CreateMeeting
+		var nm apimodel.CreateMeeting
 		nm.Name = "meeting"
 
 		b, err := json.Marshal(nm)
@@ -109,7 +109,7 @@ func TestServer(t *testing.T) {
 
 		// Then he can do it.
 
-		var m model.Meeting
+		var m apimodel.Meeting
 		require.NoError(t, json.NewDecoder(res.Body).Decode(&m), "decoding response")
 
 		assert.NotEmpty(t, m.ID, "no meeting id")
