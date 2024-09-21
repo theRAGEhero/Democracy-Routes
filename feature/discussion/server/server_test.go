@@ -16,15 +16,25 @@ import (
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/user"
 )
 
 func TestServer(t *testing.T) {
 	t.Parallel()
 
+	t.Run("adding a new user", func(t *testing.T) {
+		t.Parallel()
+
+		// Given a new user Dima is added.
+
+		// Then the user Dima exists.
+
+	})
+
 	t.Run("authorization", func(t *testing.T) {
 		t.Parallel()
 
-		var repo userRepo
+		var repo user.Handler
 		srv := testServer(t)
 
 		// Given there is a user Dima.
@@ -50,7 +60,7 @@ func TestServer(t *testing.T) {
 	t.Run("meeting", func(t *testing.T) {
 		t.Parallel()
 
-		var repo userRepo
+		var repo user.Handler
 		srv := testServer(t)
 
 		// Given there is a user Dima.
@@ -79,14 +89,6 @@ func TestServer(t *testing.T) {
 		assert.NotEmpty(t, m.ID, "no meeting id")
 		assert.Equal(t, nm.Name, m.Name, "wrong meeting name")
 	})
-}
-
-type user struct{}
-
-type userRepo struct{}
-
-func (r *userRepo) GetUser(id string) (*user, error) {
-	return &user{}, nil
 }
 
 func testServer(tb testing.TB) string {
