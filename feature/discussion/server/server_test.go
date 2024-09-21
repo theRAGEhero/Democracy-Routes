@@ -16,7 +16,8 @@ import (
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
-	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/user"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
+	usermodel "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler/model"
 )
 
 func TestServer(t *testing.T) {
@@ -25,21 +26,40 @@ func TestServer(t *testing.T) {
 	t.Run("adding a new user", func(t *testing.T) {
 		t.Parallel()
 
+		userH, err := userhandler.New(make(map[string]*usermodel.User))
+		require.NoError(t, err, "creating user handler")
+
 		// Given a new user Dima is added.
+
+		u, err := userH.Create(&usermodel.CreateUser{
+			Name: "Dima",
+		})
+		require.NoError(t, err, "creating user")
 
 		// Then the user Dima exists.
 
+		u2, err := userH.Get(u.ID)
+		require.NoError(t, err, "getting user")
+
+		assert.Equal(t, u.ID, u2.ID, "wrong user id")
+		assert.Equal(t, u.Name, u2.Name, "wrong user name")
 	})
 
 	t.Run("authorization", func(t *testing.T) {
 		t.Parallel()
 
-		var repo user.Handler
+		userH, err := userhandler.New(make(map[string]*usermodel.User))
+		require.NoError(t, err, "creating user handler")
 		api := httpApi(t)
 
 		// Given there is a user Dima.
 
-		_, err := repo.GetUser("Dima")
+		u, err := userH.Create(&usermodel.CreateUser{
+			Name: "Dima",
+		})
+		require.NoError(t, err, "creating user")
+
+		_, err = userH.Get(u.ID)
 		require.NoError(t, err, "getting user")
 
 		// When Dima authorises.
@@ -60,12 +80,18 @@ func TestServer(t *testing.T) {
 	t.Run("meeting", func(t *testing.T) {
 		t.Parallel()
 
-		var repo user.Handler
+		userH, err := userhandler.New(make(map[string]*usermodel.User))
+		require.NoError(t, err, "creating user handler")
 		api := httpApi(t)
 
 		// Given there is a user Dima.
 
-		_, err := repo.GetUser("Dima")
+		u, err := userH.Create(&usermodel.CreateUser{
+			Name: "Dima",
+		})
+		require.NoError(t, err, "creating user")
+
+		_, err = userH.Get(u.ID)
 		require.NoError(t, err, "getting user")
 
 		// When Dima creates a new meeting.
