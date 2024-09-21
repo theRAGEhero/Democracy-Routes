@@ -1,3 +1,4 @@
+setup-dev-environment: pre-commit
+
 pre-commit:
-	pip install pre-commit
 	pre-commit install
