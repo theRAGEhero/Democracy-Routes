@@ -29,7 +29,7 @@ func TestServer(t *testing.T) {
 	t.Run("new user", func(t *testing.T) {
 		t.Parallel()
 
-		userH, err := userhandler.New(tmpDBInstance(t), nil)
+		userH, err := userhandler.New(tmpDBInstance(t))
 		require.NoError(t, err, "creating user handler")
 
 		// Given a new user Dima is added.
@@ -51,7 +51,7 @@ func TestServer(t *testing.T) {
 	t.Run("user authorization", func(t *testing.T) {
 		t.Parallel()
 
-		userH, err := userhandler.New(tmpDBInstance(t), nil)
+		userH, err := userhandler.New(tmpDBInstance(t))
 		require.NoError(t, err, "creating user handler")
 		api := httpApi(t)
 
@@ -83,7 +83,7 @@ func TestServer(t *testing.T) {
 	t.Run("new meeting", func(t *testing.T) {
 		t.Parallel()
 
-		userH, err := userhandler.New(tmpDBInstance(t), nil)
+		userH, err := userhandler.New(tmpDBInstance(t))
 		require.NoError(t, err, "creating user handler")
 		api := httpApi(t)
 
