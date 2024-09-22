@@ -1,25 +1,17 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log"
 	"os"
+
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli"
 )
 
 func main() {
-	if err := run(os.Args[1:]); err != nil {
+	if err := cli.Run(cli.Settings{
+		Args: os.Args[1:],
+		Out:  os.Stdout,
+	}); err != nil {
 		log.Fatalf("running app %s:", err)
 	}
-}
-
-func run(args []string) error {
-	fs := flag.NewFlagSet("cli", flag.ContinueOnError)
-
-	err := fs.Parse(args)
-	if err != nil {
-		return fmt.Errorf("parsing flags: %w", err)
-	}
-
-	return nil
 }
