@@ -1,6 +1,10 @@
 package create
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command/root/create/user"
+)
 
 type Command struct {
 	cmd  string
@@ -21,8 +25,12 @@ func New(args []string) (*Command, error) {
 func (c *Command) Run() error {
 	switch c.cmd {
 	case "user":
+		cc, err := user.New(c.args)
+		if err != nil {
+			return err
+		}
 
-		return nil
+		return cc.Run()
 	default:
 		return fmt.Errorf("unknown command: %s", c.cmd)
 	}

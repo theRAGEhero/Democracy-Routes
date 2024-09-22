@@ -3,7 +3,7 @@ package root
 import (
 	"fmt"
 
-	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command/create"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command/root/create"
 )
 
 type Command struct {
