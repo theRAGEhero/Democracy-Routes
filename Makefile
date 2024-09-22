@@ -1,3 +1,4 @@
+# Prepare local environment for development.
 setup-dev-environment: pre-commit
 
 # Install git pre-commit hooks.
@@ -15,3 +16,11 @@ generate-feature-tests:
 		--volume "$$(pwd)":/host/:ro \
 		hedhyw/gherkingen:v4.0.0 \
 		-- /host/"$(path)"
+
+# Start development infrastructure.
+dev-infra-start:
+	docker compose up --detach
+
+# Stop development infrastructure.
+dev-infra-stop:
+	docker compose down
