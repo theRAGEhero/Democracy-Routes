@@ -29,9 +29,7 @@ func TestServer(t *testing.T) {
 	t.Run("new user", func(t *testing.T) {
 		t.Parallel()
 
-		db := tmpDB(t)
-		prepareDB(t, db)
-		userH, err := userhandler.New(db, make(map[string]*usermodel.User))
+		userH, err := userhandler.New(tmpDBInstance(t), nil)
 		require.NoError(t, err, "creating user handler")
 
 		// Given a new user Dima is added.
@@ -53,7 +51,7 @@ func TestServer(t *testing.T) {
 	t.Run("user authorization", func(t *testing.T) {
 		t.Parallel()
 
-		userH, err := userhandler.New(nil, make(map[string]*usermodel.User))
+		userH, err := userhandler.New(tmpDBInstance(t), nil)
 		require.NoError(t, err, "creating user handler")
 		api := httpApi(t)
 
@@ -85,7 +83,7 @@ func TestServer(t *testing.T) {
 	t.Run("new meeting", func(t *testing.T) {
 		t.Parallel()
 
-		userH, err := userhandler.New(nil, make(map[string]*usermodel.User))
+		userH, err := userhandler.New(tmpDBInstance(t), nil)
 		require.NoError(t, err, "creating user handler")
 		api := httpApi(t)
 
@@ -166,6 +164,15 @@ func randomPort(tb testing.TB) int {
 	require.NoError(tb, l.Close(), "closing listener")
 
 	return l.Addr().(*net.TCPAddr).Port
+}
+
+func tmpDBInstance(tb testing.TB) *sql.DB {
+	tb.Helper()
+
+	db := tmpDB(tb)
+	prepareDB(tb, db)
+
+	return db
 }
 
 func tmpDB(tb testing.TB) *sql.DB {

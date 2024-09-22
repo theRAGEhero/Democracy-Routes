@@ -17,8 +17,8 @@ type Handler struct {
 }
 
 func New(db *sql.DB, source map[string]*model.User) (*Handler, error) {
-	if source == nil {
-		return nil, fmt.Errorf("no source")
+	if db == nil {
+		return nil, semerr.NewInternalServerError(fmt.Errorf("no db"))
 	}
 
 	return &Handler{
