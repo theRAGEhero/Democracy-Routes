@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler/model"
 )
 
 type Command struct {
@@ -31,7 +33,19 @@ func New(p common.Params) (*Command, error) {
 }
 
 func (c *Command) Run() error {
-	_, err := c.params.Out.Write([]byte("created"))
+	h, err := userhandler.New(c.params.DB)
+	if err != nil {
+		return fmt.Errorf("creating user handler: %w", err)
+	}
+
+	_, err = h.Create(&model.CreateUser{
+		Name: c.name,
+	})
+	if err != nil {
+		return fmt.Errorf("creating user: %w", err)
+	}
+
+	_, err = c.params.Out.Write([]byte("user created"))
 	if err != nil {
 		return fmt.Errorf("writing output: %w", err)
 	}

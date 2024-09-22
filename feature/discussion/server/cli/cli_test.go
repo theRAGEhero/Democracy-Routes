@@ -9,6 +9,7 @@ import (
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/testhelper"
 )
 
 func TestCommandLineInterface(t *testing.T) {
@@ -26,6 +27,7 @@ func TestCommandLineInterface(t *testing.T) {
 			cli.Run(common.Params{
 				Args: []string{"create", "user", "-name=Dima", "-password=secret"},
 				Out:  &buf,
+				DB:   testhelper.TmpDB(t),
 			}),
 			"creating user",
 		)
