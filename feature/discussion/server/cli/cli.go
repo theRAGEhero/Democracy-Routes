@@ -2,18 +2,13 @@ package cli
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command/root"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
 )
 
-type Settings struct {
-	Args []string
-	Out  io.Writer
-}
-
-func Run(s Settings) error {
-	c, err := root.New(s.Args)
+func Run(p common.Params) error {
+	c, err := root.New(p)
 	if err != nil {
 		return fmt.Errorf("creating command: %w", err)
 	}

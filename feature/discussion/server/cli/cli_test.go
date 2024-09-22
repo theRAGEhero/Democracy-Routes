@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
 )
 
 func TestCommandLineInterface(t *testing.T) {
@@ -21,7 +23,7 @@ func TestCommandLineInterface(t *testing.T) {
 
 		require.NoError(
 			t,
-			cli.Run(cli.Settings{
+			cli.Run(common.Params{
 				Args: []string{"create", "user", "-name=Dima", "-password=secret"},
 				Out:  &buf,
 			}),
@@ -30,6 +32,6 @@ func TestCommandLineInterface(t *testing.T) {
 
 		// Then the user Dima exists.
 
-		// assert.Contains(t, buf.String(), "created")
+		assert.Contains(t, buf.String(), "created")
 	})
 }

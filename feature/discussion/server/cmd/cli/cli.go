@@ -5,10 +5,11 @@ import (
 	"os"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
 )
 
 func main() {
-	if err := cli.Run(cli.Settings{
+	if err := cli.Run(common.Params{
 		Args: os.Args[1:],
 		Out:  os.Stdout,
 	}); err != nil {

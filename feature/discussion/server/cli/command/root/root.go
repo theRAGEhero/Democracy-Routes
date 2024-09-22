@@ -4,28 +4,29 @@ import (
 	"fmt"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command/root/create"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
 )
 
 type Command struct {
-	cmd  string
-	args []string
+	cmd    string
+	params common.Params
 }
 
-func New(args []string) (*Command, error) {
-	if len(args) == 0 {
+func New(p common.Params) (*Command, error) {
+	if len(p.Args) == 0 {
 		return nil, fmt.Errorf("no command specified")
 	}
 
 	return &Command{
-		cmd:  args[0],
-		args: args[1:],
+		cmd:    p.Args[0],
+		params: p.Next(),
 	}, nil
 }
 
 func (c *Command) Run() error {
 	switch c.cmd {
 	case "create":
-		cc, err := create.New(c.args)
+		cc, err := create.New(c.params)
 		if err != nil {
 			return err
 		}
