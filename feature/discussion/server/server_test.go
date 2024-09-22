@@ -3,6 +3,7 @@ package server_test
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -11,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -161,4 +164,35 @@ func randomPort(tb testing.TB) int {
 	require.NoError(tb, l.Close(), "closing listener")
 
 	return l.Addr().(*net.TCPAddr).Port
+}
+
+func TestPostgres(t *testing.T) {
+	db := tmpDB(t)
+	require.NotNil(t, db, "no db")
+}
+
+func tmpDB(tb testing.TB) *sql.DB {
+	tb.Helper()
+
+	db, err := sql.Open("pgx", "postgres://postgres:testing@localhost:5432/postgres")
+	require.NoError(tb, err, "connecting to db")
+	require.NoError(tb, db.Ping(), "pinging db")
+
+	tdbn := "db" + strings.ReplaceAll(uuid.NewString(), "-", "")
+
+	_, err = db.Exec("CREATE DATABASE " + tdbn)
+	require.NoError(tb, err, "creating temporary db")
+
+	tdb, err := sql.Open("pgx", "postgres://postgres:testing@localhost:5432/"+tdbn)
+	require.NoError(tb, err, "connecting to temporary db")
+	require.NoError(tb, tdb.Ping(), "pinging temporary db")
+
+	tb.Cleanup(func() {
+		require.NoError(tb, tdb.Close(), "closing temporary db connection")
+		_, err = db.Exec("DROP DATABASE " + tdbn)
+		require.NoError(tb, err, "dropping temporary db")
+		require.NoError(tb, db.Close(), "closing db connection")
+	})
+
+	return tdb
 }
