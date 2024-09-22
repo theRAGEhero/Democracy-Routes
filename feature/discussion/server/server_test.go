@@ -29,7 +29,9 @@ func TestServer(t *testing.T) {
 	t.Run("new user", func(t *testing.T) {
 		t.Parallel()
 
-		userH, err := userhandler.New(make(map[string]*usermodel.User))
+		db := tmpDB(t)
+		prepareDB(t, db)
+		userH, err := userhandler.New(db, make(map[string]*usermodel.User))
 		require.NoError(t, err, "creating user handler")
 
 		// Given a new user Dima is added.
@@ -51,7 +53,7 @@ func TestServer(t *testing.T) {
 	t.Run("user authorization", func(t *testing.T) {
 		t.Parallel()
 
-		userH, err := userhandler.New(make(map[string]*usermodel.User))
+		userH, err := userhandler.New(nil, make(map[string]*usermodel.User))
 		require.NoError(t, err, "creating user handler")
 		api := httpApi(t)
 
@@ -83,7 +85,7 @@ func TestServer(t *testing.T) {
 	t.Run("new meeting", func(t *testing.T) {
 		t.Parallel()
 
-		userH, err := userhandler.New(make(map[string]*usermodel.User))
+		userH, err := userhandler.New(nil, make(map[string]*usermodel.User))
 		require.NoError(t, err, "creating user handler")
 		api := httpApi(t)
 
@@ -166,11 +168,6 @@ func randomPort(tb testing.TB) int {
 	return l.Addr().(*net.TCPAddr).Port
 }
 
-func TestPostgres(t *testing.T) {
-	db := tmpDB(t)
-	require.NotNil(t, db, "no db")
-}
-
 func tmpDB(tb testing.TB) *sql.DB {
 	tb.Helper()
 
@@ -195,4 +192,14 @@ func tmpDB(tb testing.TB) *sql.DB {
 	})
 
 	return tdb
+}
+
+func prepareDB(tb testing.TB, db *sql.DB) {
+	tb.Helper()
+
+	_, err := db.Exec(`CREATE TABLE users (
+			id uuid PRIMARY KEY,
+			name text NOT NULL
+		)`)
+	require.NoError(tb, err, "creating users table")
 }
