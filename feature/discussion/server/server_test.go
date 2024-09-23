@@ -14,6 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli"
+	createduser "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command/root/create/user"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi"
 	apimodel "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/testhelper"
@@ -27,23 +30,32 @@ func TestServer(t *testing.T) {
 	t.Run("new user", func(t *testing.T) {
 		t.Parallel()
 
-		userH, err := userhandler.New(testhelper.TmpDB(t))
-		require.NoError(t, err, "creating user handler")
+		db := testhelper.TmpDB(t)
 
 		// Given a new user Dima is added.
 
-		u, err := userH.Create(&usermodel.CreateUser{
-			Name: "Dima",
+		var buf bytes.Buffer
+
+		err := cli.Run(common.Params{
+			Args: []string{"create", "user", "-name=Dima", "--pass=secret"},
+			Out:  &buf,
+			DB:   db,
 		})
 		require.NoError(t, err, "creating user")
 
-		// Then the user Dima exists.
+		var addedUser createduser.Response
+		require.NoError(t, json.Unmarshal(buf.Bytes(), &addedUser), "unmarshalling response")
 
-		u2, err := userH.Get(u.ID)
+		// Then user Dima exists.
+
+		userH, err := userhandler.New(db)
+		require.NoError(t, err, "creating user handler")
+
+		user, err := userH.Get(addedUser.ID)
 		require.NoError(t, err, "getting user")
 
-		assert.Equal(t, u.ID, u2.ID, "wrong user id")
-		assert.Equal(t, u.Name, u2.Name, "wrong user name")
+		assert.Equal(t, addedUser.ID, user.ID, "wrong user id")
+		assert.Equal(t, addedUser.Name, user.Name, "wrong user name")
 	})
 
 	t.Run("user authorization", func(t *testing.T) {

@@ -25,7 +25,7 @@ func TestCommandLineInterface(t *testing.T) {
 		require.NoError(
 			t,
 			cli.Run(common.Params{
-				Args: []string{"create", "user", "-name=Dima", "-password=secret"},
+				Args: []string{"create", "user", "-name=Dima", "-pass=secret"},
 				Out:  &buf,
 				DB:   testhelper.TmpDB(t),
 			}),
@@ -34,6 +34,7 @@ func TestCommandLineInterface(t *testing.T) {
 
 		// Then the user Dima exists.
 
-		assert.Contains(t, buf.String(), "created")
+		assert.Contains(t, buf.String(), `"ID":"`)
+		assert.Contains(t, buf.String(), `"Name":"Dima"`)
 	})
 }

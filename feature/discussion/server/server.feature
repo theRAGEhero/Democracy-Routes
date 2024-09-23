@@ -2,7 +2,7 @@ Feature: Server
 
   Scenario: new user
     Given a new user Dima is added
-    Then the user Dima exists
+    Then user Dima exists
 
   Scenario: user authorization
     Given there is a user Dima
