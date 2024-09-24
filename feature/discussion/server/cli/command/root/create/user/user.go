@@ -7,6 +7,7 @@ import (
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/password"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler/model"
 )
@@ -58,7 +59,12 @@ func (c *Command) Run() error {
 		return fmt.Errorf("creating auth handler: %w", err)
 	}
 
-	err = ah.SetPassword(user.ID, c.password)
+	pass := c.password
+	if pass == "" {
+		pass = password.New()
+	}
+
+	err = ah.SetPassword(user.ID, pass)
 	if err != nil {
 		return fmt.Errorf("setting password: %w", err)
 	}
@@ -66,7 +72,7 @@ func (c *Command) Run() error {
 	var res Response
 	res.ID = user.ID
 	res.Name = user.Name
-	res.Password = c.password
+	res.Password = pass
 
 	err = json.NewEncoder(c.params.Out).Encode(res)
 	if err != nil {

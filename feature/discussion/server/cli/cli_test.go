@@ -2,7 +2,9 @@ package cli_test
 
 import (
 	"bytes"
+	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +27,7 @@ func TestCommandLineInterface(t *testing.T) {
 		require.NoError(
 			t,
 			cli.Run(common.Params{
-				Args: []string{"create", "user", "-name=Dima", "-pass=secret"},
+				Args: []string{"create", "user", "-name=Dima", "-pass="},
 				Out:  &buf,
 				DB:   testhelper.TmpDB(t),
 			}),
@@ -36,6 +38,9 @@ func TestCommandLineInterface(t *testing.T) {
 
 		assert.Contains(t, buf.String(), `"ID":"`)
 		assert.Contains(t, buf.String(), `"Name":"Dima"`)
-		assert.Contains(t, buf.String(), `"Password":"secret"`)
+
+		ps := strings.Index(buf.String(), `"Password":"`) + len(`"Password":"`)
+		pe := strings.Index(buf.String()[ps:], `"`) + ps
+		assert.Equal(t, 16, utf8.RuneCountInString(buf.String()[ps:pe]))
 	})
 }
