@@ -36,5 +36,6 @@ func TestCommandLineInterface(t *testing.T) {
 
 		assert.Contains(t, buf.String(), `"ID":"`)
 		assert.Contains(t, buf.String(), `"Name":"Dima"`)
+		assert.Contains(t, buf.String(), `"Password":"secret"`)
 	})
 }

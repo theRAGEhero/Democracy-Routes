@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler/model"
@@ -34,26 +35,38 @@ func New(p common.Params) (*Command, error) {
 }
 
 type Response struct {
-	ID   string
-	Name string
+	ID       string
+	Name     string
+	Password string
 }
 
 func (c *Command) Run() error {
-	h, err := userhandler.New(c.params.DB)
+	uh, err := userhandler.New(c.params.DB)
 	if err != nil {
 		return fmt.Errorf("creating user handler: %w", err)
 	}
 
-	user, err := h.Create(&model.CreateUser{
+	user, err := uh.Create(&model.CreateUser{
 		Name: c.name,
 	})
 	if err != nil {
 		return fmt.Errorf("creating user: %w", err)
 	}
 
+	ah, err := authandler.New(c.params.DB)
+	if err != nil {
+		return fmt.Errorf("creating auth handler: %w", err)
+	}
+
+	err = ah.SetPassword(user.ID, c.password)
+	if err != nil {
+		return fmt.Errorf("setting password: %w", err)
+	}
+
 	var res Response
 	res.ID = user.ID
 	res.Name = user.Name
+	res.Password = c.password
 
 	err = json.NewEncoder(c.params.Out).Encode(res)
 	if err != nil {

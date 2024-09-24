@@ -48,9 +48,26 @@ func tmpDB(tb testing.TB) *sql.DB {
 func prepareDB(tb testing.TB, db *sql.DB) {
 	tb.Helper()
 
+	initUsers(tb, db)
+	initAuth(tb, db)
+}
+
+func initUsers(tb testing.TB, db *sql.DB) {
+	tb.Helper()
+
 	_, err := db.Exec(`CREATE TABLE users (
 			id uuid PRIMARY KEY,
 			name text NOT NULL
 		)`)
-	require.NoError(tb, err, "creating users table")
+	require.NoError(tb, err, "creating user table")
+}
+
+func initAuth(tb testing.TB, db *sql.DB) {
+	tb.Helper()
+
+	_, err := db.Exec(`CREATE TABLE auth (
+    		id uuid PRIMARY KEY,
+    		hash text NOT NULL
+        )`)
+	require.NoError(tb, err, "creating auth table")
 }
