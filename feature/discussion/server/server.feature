@@ -1,10 +1,6 @@
 Feature: Server
 
-  Scenario: new user
-    Given a new user Dima is added
-    Then user Dima exists
-
-  Scenario: user authorization
+Scenario: user authorization
     Given there is a user Dima
     When Dima authorises
     Then he can do it

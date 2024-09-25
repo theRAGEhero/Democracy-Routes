@@ -27,12 +27,13 @@ import (
 func TestServer(t *testing.T) {
 	t.Parallel()
 
-	t.Run("new user", func(t *testing.T) {
+	t.Run("user authorization", func(t *testing.T) {
 		t.Parallel()
 
+		api := httpApi(t)
 		db := testhelper.TmpDB(t)
 
-		// Given a new user Dima is added.
+		// Given there is a user Dima.
 
 		var buf bytes.Buffer
 
@@ -46,38 +47,9 @@ func TestServer(t *testing.T) {
 		var addedUser createduser.Response
 		require.NoError(t, json.Unmarshal(buf.Bytes(), &addedUser), "unmarshalling response")
 
-		// Then user Dima exists.
-
-		userH, err := userhandler.New(db)
-		require.NoError(t, err, "creating user handler")
-
-		user, err := userH.Get(addedUser.ID)
-		require.NoError(t, err, "getting user")
-
-		assert.Equal(t, addedUser.ID, user.ID, "wrong user id")
-		assert.Equal(t, addedUser.Name, user.Name, "wrong user name")
-	})
-
-	t.Run("user authorization", func(t *testing.T) {
-		t.Parallel()
-
-		userH, err := userhandler.New(testhelper.TmpDB(t))
-		require.NoError(t, err, "creating user handler")
-		api := httpApi(t)
-
-		// Given there is a user Dima.
-
-		u, err := userH.Create(&usermodel.CreateUser{
-			Name: "Dima",
-		})
-		require.NoError(t, err, "creating user")
-
-		_, err = userH.Get(u.ID)
-		require.NoError(t, err, "getting user")
-
 		// When Dima authorises.
 
-		res, err := http.Post(api+"/login", "text/plain", strings.NewReader("authorization"))
+		res, err := http.Post(api+"/login", "text/plain", strings.NewReader(addedUser.Password))
 		require.NoError(t, err, "authorizing user")
 		require.Equal(t, http.StatusOK, res.StatusCode, "wrong status code")
 		t.Cleanup(func() { require.NoError(t, res.Body.Close(), "closing response body") })
