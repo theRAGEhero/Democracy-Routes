@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli"
 	createduser "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command/root/create/user"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
@@ -30,14 +30,21 @@ func TestServer(t *testing.T) {
 	t.Run("user authorization", func(t *testing.T) {
 		t.Parallel()
 
-		api := httpApi(t)
 		db := testhelper.TmpDB(t)
+
+		authH, err := authandler.New(db)
+		require.NoError(t, err, "creating auth handler")
+
+		userH, err := userhandler.New(db)
+		require.NoError(t, err, "creating user handler")
+
+		api := httpApi(t, userH, authH)
 
 		// Given there is a user Dima.
 
 		var buf bytes.Buffer
 
-		err := cli.Run(common.Params{
+		err = cli.Run(common.Params{
 			Args: []string{"create", "user", "-name=Dima", "--pass=secret"},
 			Out:  &buf,
 			DB:   db,
@@ -45,11 +52,19 @@ func TestServer(t *testing.T) {
 		require.NoError(t, err, "creating user")
 
 		var addedUser createduser.Response
-		require.NoError(t, json.Unmarshal(buf.Bytes(), &addedUser), "unmarshalling response")
+		require.NoError(t, json.Unmarshal(buf.Bytes(), &addedUser), "unmarshalling create user response")
 
 		// When Dima authorises.
 
-		res, err := http.Post(api+"/login", "text/plain", strings.NewReader(addedUser.Password))
+		req := apimodel.UserAuthorization{
+			Username: addedUser.Name,
+			Password: addedUser.Password,
+		}
+
+		b, err := json.Marshal(req)
+		require.NoError(t, err, "marshalling authorization request")
+
+		res, err := http.Post(api+"/login", "application/json", bytes.NewReader(b))
 		require.NoError(t, err, "authorizing user")
 		require.Equal(t, http.StatusOK, res.StatusCode, "wrong status code")
 		t.Cleanup(func() { require.NoError(t, res.Body.Close(), "closing response body") })
@@ -67,7 +82,7 @@ func TestServer(t *testing.T) {
 
 		userH, err := userhandler.New(testhelper.TmpDB(t))
 		require.NoError(t, err, "creating user handler")
-		api := httpApi(t)
+		api := httpApi(t, nil, nil)
 
 		// Given there is a user Dima.
 
@@ -102,12 +117,12 @@ func TestServer(t *testing.T) {
 	})
 }
 
-func httpApi(tb testing.TB) string {
+func httpApi(tb testing.TB, userH *userhandler.Handler, authH *authandler.Handler) string {
 	tb.Helper()
 
 	port := randomPort(tb)
 
-	shutdown := httpapi.Start(port)
+	shutdown := httpapi.Start(port, userH, authH)
 
 	tb.Cleanup(func() {
 		tb.Helper()

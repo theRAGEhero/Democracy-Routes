@@ -57,7 +57,7 @@ func initUsers(tb testing.TB, db *sql.DB) {
 
 	_, err := db.Exec(`CREATE TABLE users (
 			id uuid PRIMARY KEY,
-			name text NOT NULL
+			name text UNIQUE NOT NULL
 		)`)
 	require.NoError(tb, err, "creating user table")
 }

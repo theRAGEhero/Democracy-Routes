@@ -53,3 +53,19 @@ func (h *Handler) Get(id string) (*model.User, error) {
 
 	return &user, nil
 }
+
+func (h *Handler) GetByName(name string) (*model.User, error) {
+	var user model.User
+
+	err := h.db.
+		QueryRow("SELECT id, name FROM users WHERE name = $1", name).
+		Scan(&user.ID, &user.Name)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, semerr.NewNotFoundError(fmt.Errorf("no such user: %w", err))
+	} else if err != nil {
+		return nil, semerr.NewInternalServerError(fmt.Errorf("getting user: %w", err))
+	}
+
+	return &user, nil
+}

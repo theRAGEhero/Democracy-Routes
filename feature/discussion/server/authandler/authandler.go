@@ -28,11 +28,20 @@ func (h *Handler) SetPassword(id string, password string) error {
 		return semerr.NewBadRequestError(fmt.Errorf("generating password hash: %w", err))
 	}
 
-	_, err = h.db.Exec("INSERT INTO auth (id, hash) VALUES ($1, $2) " +
+	_, err = h.db.Exec("INSERT INTO auth (id, hash) VALUES ($1, $2) "+
 		"ON CONFLICT (id) DO UPDATE SET hash = EXCLUDED.hash", id, phash)
 	if err != nil {
 		return semerr.NewInternalServerError(fmt.Errorf("setting password: %w", err))
 	}
 
 	return nil
+}
+
+func (h *Handler) Authorize(id string, pass string) bool {
+	var phash string
+	if err := h.db.QueryRow("SELECT hash FROM auth WHERE id = $1", id).Scan(&phash); err != nil {
+		return false
+	}
+
+	return bcrypt.CompareHashAndPassword([]byte(phash), []byte(pass)) == nil
 }

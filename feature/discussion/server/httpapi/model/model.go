@@ -1,5 +1,10 @@
 package model
 
+type UserAuthorization struct {
+	Username string
+	Password string
+}
+
 type UserAuthorizationResponse struct {
 	Token string
 }
