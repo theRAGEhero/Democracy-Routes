@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authandler"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authenticationhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli"
 	createduser "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command/root/create/user"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
@@ -32,7 +32,7 @@ func TestServer(t *testing.T) {
 
 		db := testhelper.TmpDB(t)
 
-		authH, err := authandler.New(db)
+		authH, err := authenticationhandler.New(db)
 		require.NoError(t, err, "creating auth handler")
 
 		userH, err := userhandler.New(db)
@@ -58,7 +58,7 @@ func TestServer(t *testing.T) {
 
 		req := apimodel.UserAuthorization{
 			Username: addedUser.Name,
-			Password: addedUser.Password,
+			Password: "secret",
 		}
 
 		b, err := json.Marshal(req)
@@ -117,7 +117,7 @@ func TestServer(t *testing.T) {
 	})
 }
 
-func httpApi(tb testing.TB, userH *userhandler.Handler, authH *authandler.Handler) string {
+func httpApi(tb testing.TB, userH *userhandler.Handler, authH *authenticationhandler.Handler) string {
 	tb.Helper()
 
 	port := randomPort(tb)

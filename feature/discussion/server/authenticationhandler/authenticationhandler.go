@@ -1,4 +1,4 @@
-package authandler
+package authenticationhandler
 
 import (
 	"database/sql"
@@ -37,7 +37,7 @@ func (h *Handler) SetPassword(id string, password string) error {
 	return nil
 }
 
-func (h *Handler) Authorize(id string, pass string) bool {
+func (h *Handler) Authenticate(id string, pass string) bool {
 	var phash string
 	if err := h.db.QueryRow("SELECT hash FROM auth WHERE id = $1", id).Scan(&phash); err != nil {
 		return false

@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authandler"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authenticationhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/password"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
@@ -54,7 +54,7 @@ func (c *Command) Run() error {
 		return fmt.Errorf("creating user: %w", err)
 	}
 
-	ah, err := authandler.New(c.params.DB)
+	ah, err := authenticationhandler.New(c.params.DB)
 	if err != nil {
 		return fmt.Errorf("creating auth handler: %w", err)
 	}
