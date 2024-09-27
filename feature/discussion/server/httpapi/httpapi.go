@@ -8,10 +8,18 @@ import (
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authenticationhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/jwthandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
 )
 
-func Start(port int, userH *userhandler.Handler, authH *authenticationhandler.Handler) func(ctx context.Context) error {
+type Settings struct {
+	Port  int
+	UserH *userhandler.Handler
+	AuthH *authenticationhandler.Handler
+	JwtH  *jwthandler.Handler
+}
+
+func Start(settings Settings) func(ctx context.Context) error {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
@@ -27,21 +35,26 @@ func Start(port int, userH *userhandler.Handler, authH *authenticationhandler.Ha
 			return
 		}
 
-		user, err := userH.GetByName(req.Username)
+		user, err := settings.UserH.GetByName(req.Username)
 		if err != nil {
 			http.Error(w, "wrong credentials", http.StatusUnauthorized)
 
 			return
 		}
 
-		if !authH.Authenticate(user.ID, req.Password) {
+		if !settings.AuthH.Authenticate(user.ID, req.Password) {
 			http.Error(w, "wrong credentials", http.StatusUnauthorized)
 
 			return
 		}
 
+		token, err := settings.JwtH.Issue(user.ID)
+		if err != nil {
+			http.Error(w, "issuing token error", http.StatusInternalServerError)
+		}
+
 		var auth model.UserAuthorizationResponse
-		auth.Token = "authorized"
+		auth.Token = token
 
 		if err := json.NewEncoder(w).Encode(auth); err != nil {
 			http.Error(w, "encoding authorization response: "+err.Error(), http.StatusInternalServerError)
@@ -72,7 +85,7 @@ func Start(port int, userH *userhandler.Handler, authH *authenticationhandler.Ha
 
 	var srv http.Server
 
-	srv.Addr = fmt.Sprintf("localhost:%d", port)
+	srv.Addr = fmt.Sprintf("localhost:%d", settings.Port)
 
 	srv.Handler = mux
 

@@ -19,6 +19,7 @@ import (
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi"
 	apimodel "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/jwthandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/testhelper"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
 	usermodel "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler/model"
@@ -38,7 +39,9 @@ func TestServer(t *testing.T) {
 		userH, err := userhandler.New(db)
 		require.NoError(t, err, "creating user handler")
 
-		api := httpApi(t, userH, authH)
+		jwtH := jwthandler.New([]byte("secret"))
+
+		api := httpApi(t, userH, authH, jwtH)
 
 		// Given there is a user Dima.
 
@@ -82,7 +85,7 @@ func TestServer(t *testing.T) {
 
 		userH, err := userhandler.New(testhelper.TmpDB(t))
 		require.NoError(t, err, "creating user handler")
-		api := httpApi(t, nil, nil)
+		api := httpApi(t, nil, nil, nil)
 
 		// Given there is a user Dima.
 
@@ -117,12 +120,17 @@ func TestServer(t *testing.T) {
 	})
 }
 
-func httpApi(tb testing.TB, userH *userhandler.Handler, authH *authenticationhandler.Handler) string {
+func httpApi(tb testing.TB, userH *userhandler.Handler, authH *authenticationhandler.Handler, jwtH *jwthandler.Handler) string {
 	tb.Helper()
 
 	port := randomPort(tb)
 
-	shutdown := httpapi.Start(port, userH, authH)
+	shutdown := httpapi.Start(httpapi.Settings{
+		Port:  port,
+		UserH: userH,
+		AuthH: authH,
+		JwtH:  jwtH,
+	})
 
 	tb.Cleanup(func() {
 		tb.Helper()
