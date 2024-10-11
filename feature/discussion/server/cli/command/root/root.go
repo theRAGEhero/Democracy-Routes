@@ -3,6 +3,7 @@ package root
 import (
 	"fmt"
 
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/command/root/create"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/cli/common"
 )
@@ -14,7 +15,7 @@ type Command struct {
 
 func New(p common.Params) (*Command, error) {
 	if len(p.Args) == 0 {
-		return nil, fmt.Errorf("no command specified")
+		return nil, fmt.Errorf("no command specified: %s", help())
 	}
 
 	return &Command{
@@ -24,6 +25,10 @@ func New(p common.Params) (*Command, error) {
 }
 
 func (c *Command) Run() error {
+	if command.IsHelp(c.cmd) {
+		return fmt.Errorf(help())
+	}
+
 	switch c.cmd {
 	case "create":
 		cc, err := create.New(c.params)
@@ -33,6 +38,10 @@ func (c *Command) Run() error {
 
 		return cc.Run()
 	default:
-		return fmt.Errorf("unknown command: %s", c.cmd)
+		return fmt.Errorf("unknown command: %s, %s", c.cmd, help())
 	}
+}
+
+func help() string {
+	return "available commands: \n" + "create"
 }

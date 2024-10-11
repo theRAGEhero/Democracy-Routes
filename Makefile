@@ -22,6 +22,7 @@ generate-jwt-secret:
 
 # Start development infrastructure.
 dev-infra-start:
+	@docker compose down
 	@docker compose up --detach
 
 # Stop development infrastructure.

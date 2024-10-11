@@ -32,6 +32,10 @@ func New(p common.Params) (*Command, error) {
 		return nil, fmt.Errorf("parsing flags: %w", err)
 	}
 
+	if c.name == "" {
+		return nil, fmt.Errorf("-name is required")
+	}
+
 	return &c, nil
 }
 
