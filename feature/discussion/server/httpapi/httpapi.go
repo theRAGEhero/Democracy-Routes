@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/client"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authenticationhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/jwthandler"
@@ -21,6 +22,8 @@ type Settings struct {
 
 func Start(settings Settings) func(ctx context.Context) error {
 	mux := http.NewServeMux()
+
+	mux.Handle("GET /", http.FileServerFS(client.HTMLClient))
 
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

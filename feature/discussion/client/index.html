@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+
+<head>
+    <title>Democracy Routes</title>
+<!--    <script src="https://8x8.vc/vpaas-magic-cookie-edcaadeec7b44f79a2eb2bbd6238494b/external_api.js" async></script>-->
+    <style>
+        html,
+        body,
+        #jaas-container {
+            height: 100%;
+        }
+    </style>
+    <script src="app.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <form action="/login" method="post">
+            <p>
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text" />
+            </p>
+            <p>
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" />
+            </p>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+
+</html>

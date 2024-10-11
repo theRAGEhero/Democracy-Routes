@@ -78,6 +78,11 @@ func TestServer(t *testing.T) {
 		require.NoError(t, json.NewDecoder(res.Body).Decode(&auth), "decoding response body")
 
 		assert.NotEmpty(t, auth.Token, "no authorization token")
+
+		res, err = http.Get(api + "/")
+		require.NoError(t, err, "getting client")
+		require.Equal(t, http.StatusOK, res.StatusCode, "wrong status code")
+		t.Cleanup(func() { require.NoError(t, res.Body.Close(), "closing response body") })
 	})
 
 	t.Run("new meeting", func(t *testing.T) {
