@@ -11,10 +11,14 @@ type Handler struct {
 	secret []byte
 }
 
-func New(secret []byte) *Handler {
+func New(secret []byte) (*Handler, error) {
+	if len(secret) == 0 {
+		return nil, fmt.Errorf("no secret")
+	}
+
 	return &Handler{
 		secret: secret,
-	}
+	}, nil
 }
 
 func (h *Handler) Issue(subject string) (string, error) {

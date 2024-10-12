@@ -15,13 +15,17 @@ import (
 )
 
 type Settings struct {
-	Port  int
-	UserH *userhandler.Handler
-	AuthH *authenticationhandler.Handler
-	JwtH  *jwthandler.Handler
+	Port            int
+	UserH           *userhandler.Handler
+	AuthenticationH *authenticationhandler.Handler
+	JwtH            *jwthandler.Handler
 }
 
-func Start(settings Settings) func(ctx context.Context) error {
+func Start(settings Settings) (func(ctx context.Context) error, error) {
+	if err := checkSettings(settings); err != nil {
+		return nil, fmt.Errorf("checking settings: %w", err)
+	}
+
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /", http.FileServerFS(client.HTMLClient))
@@ -46,7 +50,7 @@ func Start(settings Settings) func(ctx context.Context) error {
 			return
 		}
 
-		if !settings.AuthH.Authenticate(user.ID, req.Password) {
+		if !settings.AuthenticationH.Authenticate(user.ID, req.Password) {
 			httpError(w, errors.New("wrong credentials"), http.StatusUnauthorized)
 
 			return
@@ -97,7 +101,29 @@ func Start(settings Settings) func(ctx context.Context) error {
 
 	go srv.ListenAndServe()
 
-	return srv.Shutdown
+	return srv.Shutdown, nil
+}
+
+func checkSettings(settings Settings) error {
+	var aErr error
+
+	if settings.Port == 0 {
+		aErr = errors.Join(aErr, errors.New("port is not set"))
+	}
+
+	if settings.UserH == nil {
+		aErr = errors.Join(aErr, errors.New("user handler is not set"))
+	}
+
+	if settings.AuthenticationH == nil {
+		aErr = errors.Join(aErr, errors.New("authentication handler is not set"))
+	}
+
+	if settings.JwtH == nil {
+		aErr = errors.Join(aErr, errors.New("jwt handler is not set"))
+	}
+
+	return aErr
 }
 
 type jsonError struct {

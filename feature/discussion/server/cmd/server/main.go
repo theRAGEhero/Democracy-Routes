@@ -10,8 +10,10 @@ import (
 	"slices"
 	"time"
 
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authenticationhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/dbhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/jwthandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
 )
 
@@ -47,17 +49,30 @@ func run() error {
 		return fmt.Errorf("creating user handler: %w", err)
 	}
 
-	stop := httpapi.Start(httpapi.Settings{
-		Port:  8080,
-		UserH: userH,
-		AuthH: nil,
-		JwtH:  nil,
+	authenticationH, err := authenticationhandler.New(db)
+	if err != nil {
+		return fmt.Errorf("creating authentication handler: %w", err)
+	}
+
+	jwtH, err := jwthandler.New([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return fmt.Errorf("creating jwt handler: %w", err)
+	}
+
+	stop, err := httpapi.Start(httpapi.Settings{
+		Port:            8080,
+		UserH:           userH,
+		AuthenticationH: authenticationH,
+		JwtH:            jwtH,
 	})
+	if err != nil {
+		return fmt.Errorf("starting http api: %w", err)
+	}
 
 	gs.add(func(ctx context.Context) error {
 		err := stop(ctx)
 		if err != nil {
-			return fmt.Errorf("stopping server: %w", err)
+			return fmt.Errorf("stopping http api: %w", err)
 		}
 		return nil
 	})

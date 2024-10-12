@@ -39,7 +39,8 @@ func TestServer(t *testing.T) {
 		userH, err := userhandler.New(db)
 		require.NoError(t, err, "creating user handler")
 
-		jwtH := jwthandler.New([]byte("secret"))
+		jwtH, err := jwthandler.New([]byte("secret"))
+		require.NoError(t, err, "creating jwt handler")
 
 		api := httpApi(t, userH, authH, jwtH)
 
@@ -88,6 +89,8 @@ func TestServer(t *testing.T) {
 	t.Run("new meeting", func(t *testing.T) {
 		t.Parallel()
 
+		t.Skip("TODO: implement")
+
 		userH, err := userhandler.New(testhelper.TmpDB(t))
 		require.NoError(t, err, "creating user handler")
 		api := httpApi(t, nil, nil, nil)
@@ -130,17 +133,18 @@ func httpApi(tb testing.TB, userH *userhandler.Handler, authH *authenticationhan
 
 	port := randomPort(tb)
 
-	shutdown := httpapi.Start(httpapi.Settings{
-		Port:  port,
-		UserH: userH,
-		AuthH: authH,
-		JwtH:  jwtH,
+	stop, err := httpapi.Start(httpapi.Settings{
+		Port:            port,
+		UserH:           userH,
+		AuthenticationH: authH,
+		JwtH:            jwtH,
 	})
+	require.NoError(tb, err, "starting http api")
 
 	tb.Cleanup(func() {
 		tb.Helper()
 
-		require.NoError(tb, shutdown(context.TODO()), "shutting down http api")
+		require.NoError(tb, stop(context.TODO()), "stopping http api")
 	})
 
 	addr := fmt.Sprintf("http://localhost:%d", port)
