@@ -1,4 +1,11 @@
+let token = "";
+
 window.onload = async () => {
+	const tmp = document.getElementById("login-form-template");
+	const foo = tmp.content.cloneNode(true);
+	const app = document.getElementById("app");
+	app.appendChild(foo);
+
 	const form = document.querySelector('#login-form');
 
 	form.addEventListener('submit', async (event) => {
@@ -14,7 +21,8 @@ window.onload = async () => {
 
 		try {
 			const response = await login(JSON.stringify(data));
-			console.log(response.Token);
+			token = response.Token;
+			form.remove();
 		} catch (error) {
 			msg.textContent = error.message;
 		}

@@ -28,3 +28,10 @@ dev-infra-start:
 # Stop development infrastructure.
 dev-infra-stop:
 	@docker compose down
+
+# Create new user.
+# arguments:
+#   - name: User name.
+#   - pass: User password.
+user:
+	@go run ./feature/discussion/server/cmd/cli/main.go create user -name="$(name)" -pass="$(pass)"

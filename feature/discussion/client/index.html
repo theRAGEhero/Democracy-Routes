@@ -3,7 +3,7 @@
 
 <head>
     <title>Democracy Routes</title>
-<!--    <script src="https://8x8.vc/vpaas-magic-cookie-edcaadeec7b44f79a2eb2bbd6238494b/external_api.js" async></script>-->
+    <!--    <script src="https://8x8.vc/vpaas-magic-cookie-edcaadeec7b44f79a2eb2bbd6238494b/external_api.js" async></script>-->
     <style>
         html,
         body,
@@ -15,20 +15,22 @@
 </head>
 
 <body>
-    <div id="app">
-        <div id="error"></div>
-        <form id="login-form" action="/login" method="post">
+<div id="app">
+    <div id="error"></div>
+    <template id="login-form-template">
+        <form id="login-form">
             <p>
                 <label for="username">Username</label>
-                <input id="username" name="username" type="text" />
+                <input id="username" name="username" type="text"/>
             </p>
             <p>
                 <label for="password">Password</label>
-                <input id="password" name="password" type="password" />
+                <input id="password" name="password" type="password"/>
             </p>
             <button type="submit">Login</button>
         </form>
-    </div>
+    </template>
+</div>
 </body>
 
 </html>
