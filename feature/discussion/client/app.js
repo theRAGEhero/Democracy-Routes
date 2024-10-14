@@ -1,32 +1,34 @@
 let token = "";
 
 window.onload = async () => {
-	const tmp = document.getElementById("login-form-template");
-	const foo = tmp.content.cloneNode(true);
-	const app = document.getElementById("app");
-	app.appendChild(foo);
+	loadLoginFormTemplate();
 
-	const form = document.querySelector('#login-form');
-
-	form.addEventListener('submit', async (event) => {
-		event.preventDefault();
-		const formData = new FormData(form);
-		const data = {};
-		formData.forEach((value, key) => {
-			data[key] = value;
-		});
-
-		const msg = document.getElementById('error');
-		msg.textContent = "";
-
-		try {
-			const response = await login(JSON.stringify(data));
-			token = response.Token;
-			form.remove();
-		} catch (error) {
-			msg.textContent = error.message;
-		}
-	});
+	// const tmp = document.getElementById("login-form-template");
+	// const foo = tmp.content.cloneNode(true);
+	// const app = document.getElementById("app");
+	// app.appendChild(foo);
+	//
+	// const form = document.querySelector('#login-form');
+	//
+	// form.addEventListener('submit', async (event) => {
+	// 	event.preventDefault();
+	// 	const formData = new FormData(form);
+	// 	const data = {};
+	// 	formData.forEach((value, key) => {
+	// 		data[key] = value;
+	// 	});
+	//
+	// 	const msg = document.getElementById('error');
+	// 	msg.textContent = "";
+	//
+	// 	try {
+	// 		const response = await login(JSON.stringify(data));
+	// 		token = response.Token;
+	// 		form.remove();
+	// 	} catch (error) {
+	// 		msg.textContent = error.message;
+	// 	}
+	// });
 
 	// const api = new JitsiMeetExternalAPI("8x8.vc", {
 	//     roomName: "[sensitive_data]",
@@ -71,6 +73,35 @@ window.onload = async () => {
 	//
 	//     stream.getTracks().forEach(track => track.stop());
 	// }
+}
+
+function loadLoginFormTemplate() {
+	const template = document.getElementById("login-form-template");
+	const content = template.content.cloneNode(true);
+	const app = document.getElementById("app");
+	app.appendChild(content);
+
+	const form = document.getElementById("login-form");
+
+	form.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		const formData = new FormData(form);
+		const data = {};
+		formData.forEach((value, key) => {
+			data[key] = value;
+		});
+
+		const msg = document.getElementById('error');
+		msg.textContent = "";
+
+		try {
+			const response = await login(JSON.stringify(data));
+			token = response.Token;
+			form.remove();
+		} catch (error) {
+			msg.textContent = error.message;
+		}
+	});
 }
 
 async function login(data) {
