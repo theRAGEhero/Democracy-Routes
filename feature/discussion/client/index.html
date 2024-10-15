@@ -30,6 +30,22 @@
             <button type="submit">Login</button>
         </form>
     </template>
+    <template id="meetings-form-template">
+        <div id="meetings-form">
+            <p>You have no meetings.</p>
+            <button id="create-meeting-button" type="button">Create</button>
+        </div>
+    </template>
+    <template id="create-meeting-form-template">
+        <form id="create-meeting-form">
+            <p>
+                <label for="meeting-name">Name</label>
+                <input id="meeting-name" name="name" type="text"/>
+            </p>
+            <button type="submit">OK</button>
+            <button id="cancel-meeting-creation-button" type="reset">Cancel</button>
+        </form>
+    </template>
 </div>
 </body>
 

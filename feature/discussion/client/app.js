@@ -1,7 +1,20 @@
 let token = "";
 
 window.onload = async () => {
-	loadLoginFormTemplate();
+	const errorMessage = document.getElementById('error');
+
+	let onError = function (error) {
+		errorMessage.textContent = error.message;
+	}
+
+	let onAuthentication = function(response) {
+		token = response.Token;
+		errorMessage.textContent = "";
+		removeLoginForm();
+		loadMeetingsForm();
+	};
+
+	loadLoginForm(onAuthentication, onError);
 
 	// const tmp = document.getElementById("login-form-template");
 	// const foo = tmp.content.cloneNode(true);
@@ -75,14 +88,13 @@ window.onload = async () => {
 	// }
 }
 
-function loadLoginFormTemplate() {
+function loadLoginForm(onAuthentication, onError) {
 	const template = document.getElementById("login-form-template");
 	const content = template.content.cloneNode(true);
 	const app = document.getElementById("app");
 	app.appendChild(content);
 
 	const form = document.getElementById("login-form");
-
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
 		const formData = new FormData(form);
@@ -91,21 +103,85 @@ function loadLoginFormTemplate() {
 			data[key] = value;
 		});
 
-		const msg = document.getElementById('error');
-		msg.textContent = "";
-
 		try {
 			const response = await login(JSON.stringify(data));
-			token = response.Token;
-			form.remove();
+			onAuthentication(response);
 		} catch (error) {
-			msg.textContent = error.message;
+			onError(error)
 		}
 	});
 }
 
+function removeLoginForm() {
+	const form = document.getElementById("login-form");
+	form.remove();
+}
+
+function loadMeetingsForm() {
+	const template = document.getElementById("meetings-form-template");
+	const content = template.content.cloneNode(true);
+	const app = document.getElementById("app");
+	app.appendChild(content);
+
+	const createButton = document.getElementById("create-meeting-button");
+	createButton.addEventListener('click', () => {
+		if (!document.getElementById("create-meeting-form")) {
+			loadCreateMeetingForm();
+		}
+    });
+}
+
+function loadCreateMeetingForm(onError) {
+	const template = document.getElementById("create-meeting-form-template");
+	const content = template.content.cloneNode(true);
+	const app = document.getElementById("app");
+	app.appendChild(content);
+
+	const form = document.getElementById("create-meeting-form");
+	form.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		const formData = new FormData(form);
+		const data = {};
+		formData.forEach((value, key) => {
+			data[key] = value;
+		});
+
+		try {
+			const response = await createMeeting(JSON.stringify(data));
+			console.log(response);
+		} catch (error) {
+			onError(error)
+		}
+	})
+
+	const cancelButton = document.getElementById("cancel-meeting-creation-button");
+	cancelButton.addEventListener('click', () => {
+		removeCreateMeetingForm();
+	});
+}
+
+function removeCreateMeetingForm() {
+	const form = document.getElementById("create-meeting-form");
+	form.remove();
+}
+
 async function login(data) {
 	const response = await fetch("http://localhost:8080/login", {
+		method: "POST",
+		body: data,
+	});
+
+	const res = await response.json()
+
+	if (!response.ok) {
+		throw new Error(res.error);
+	}
+
+	return res;
+}
+
+async function createMeeting(data) {
+	const response = await fetch("http://localhost:8080/meeting", {
 		method: "POST",
 		body: data,
 	});
