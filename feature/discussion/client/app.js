@@ -1,20 +1,14 @@
 let token = "";
 
 window.onload = async () => {
-	const errorMessage = document.getElementById('error');
-
-	let onError = function (error) {
-		errorMessage.textContent = error.message;
-	}
-
 	let onAuthentication = function(response) {
 		token = response.Token;
-		errorMessage.textContent = "";
+		clearError();
 		removeLoginForm();
 		loadMeetingsForm();
 	};
 
-	loadLoginForm(onAuthentication, onError);
+	loadLoginForm(onAuthentication);
 
 	// const tmp = document.getElementById("login-form-template");
 	// const foo = tmp.content.cloneNode(true);
@@ -88,7 +82,17 @@ window.onload = async () => {
 	// }
 }
 
-function loadLoginForm(onAuthentication, onError) {
+function showError(error) {
+	const errorMessage = document.getElementById('error');
+	errorMessage.textContent = error.message;
+}
+
+function clearError() {
+	const errorMessage = document.getElementById('error');
+	errorMessage.textContent = "";
+}
+
+function loadLoginForm(onSuccess) {
 	const template = document.getElementById("login-form-template");
 	const content = template.content.cloneNode(true);
 	const app = document.getElementById("app");
@@ -105,9 +109,9 @@ function loadLoginForm(onAuthentication, onError) {
 
 		try {
 			const response = await login(JSON.stringify(data));
-			onAuthentication(response);
+			onSuccess(response);
 		} catch (error) {
-			onError(error)
+			showError(error)
 		}
 	});
 }
@@ -123,15 +127,30 @@ function loadMeetingsForm() {
 	const app = document.getElementById("app");
 	app.appendChild(content);
 
+	let onMeetingCreated = function(data) {
+		document.getElementById("create-meeting-form")?.remove();
+		document.getElementById("no-meetings-placeholder")?.remove();
+
+		const table = document.getElementById("meetings-form-table");
+		const row = document.createElement("tr");
+		const column = document.createElement("td");
+
+		column.textContent = data.Name;
+		row.id = data.ID;
+
+		row.appendChild(column);
+		table.appendChild(row);
+	}
+
 	const createButton = document.getElementById("create-meeting-button");
 	createButton.addEventListener('click', () => {
 		if (!document.getElementById("create-meeting-form")) {
-			loadCreateMeetingForm();
+			loadCreateMeetingForm(onMeetingCreated);
 		}
     });
 }
 
-function loadCreateMeetingForm(onError) {
+function loadCreateMeetingForm(onSuccess) {
 	const template = document.getElementById("create-meeting-form-template");
 	const content = template.content.cloneNode(true);
 	const app = document.getElementById("app");
@@ -148,7 +167,7 @@ function loadCreateMeetingForm(onError) {
 
 		try {
 			const response = await createMeeting(JSON.stringify(data));
-			console.log(response);
+			onSuccess(response);
 		} catch (error) {
 			onError(error)
 		}
