@@ -34,7 +34,7 @@ Feature: Problem solving
             | 1           |
             | 2           |
 
-    Scenario: grouping similar issues to a virtual route
+    Scenario Outline: grouping similar issues to a virtual route
         Given there is a topic "not enough money"
         And there is a "Round Table 1" about this topic
         And there is a "Round Table 2" about this topic
