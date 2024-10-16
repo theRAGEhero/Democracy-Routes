@@ -52,14 +52,18 @@ func PrepareDB(db *sql.DB) error {
 		aErr = errors.Join(aErr, err)
 	}
 
+	if err := createMeetingTable(db); err != nil {
+		aErr = errors.Join(aErr, err)
+	}
+
 	return aErr
 }
 
 func createUsersTable(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS users (
-			id uuid PRIMARY KEY,
-			name text UNIQUE NOT NULL
-		)`)
+		id uuid PRIMARY KEY,
+		name text UNIQUE NOT NULL
+	)`)
 	if err != nil {
 		return fmt.Errorf("creating users table: %w", err)
 	}
@@ -69,11 +73,23 @@ func createUsersTable(db *sql.DB) error {
 
 func createAuthenticationTable(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS authentication (
-    		id uuid PRIMARY KEY,
-    		hash text NOT NULL
-        )`)
+    	id uuid PRIMARY KEY,
+    	hash text NOT NULL
+    )`)
 	if err != nil {
 		return fmt.Errorf("creating authentication table: %w", err)
+	}
+
+	return nil
+}
+
+func createMeetingTable(db *sql.DB) error {
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS meeting (
+    	id uuid PRIMARY KEY,
+    	title text NOT NULL
+	)`)
+	if err != nil {
+		return fmt.Errorf("creating meeting table: %w", err)
 	}
 
 	return nil

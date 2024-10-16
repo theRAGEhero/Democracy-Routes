@@ -11,6 +11,8 @@ import (
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authenticationhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/jwthandler"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/meetinghandler"
+	meetingmodel "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/meetinghandler/model"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
 )
 
@@ -19,6 +21,7 @@ type Settings struct {
 	UserH           *userhandler.Handler
 	AuthenticationH *authenticationhandler.Handler
 	JwtH            *jwthandler.Handler
+	MeetingH        *meetinghandler.Handler
 }
 
 func Start(settings Settings) (func(ctx context.Context) error, error) {
@@ -84,7 +87,11 @@ func Start(settings Settings) (func(ctx context.Context) error, error) {
 
 		var m model.Meeting
 		m.ID = "id"
-		m.Name = nm.Name
+		m.Name = nm.Title
+
+		settings.MeetingH.Create(meetingmodel.CreateMeeting{
+			Title: nm.Title,
+		})
 
 		if err := json.NewEncoder(w).Encode(m); err != nil {
 			httpError(w, fmt.Errorf("encoding response: %w", err), http.StatusInternalServerError)

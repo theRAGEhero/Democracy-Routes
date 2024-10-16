@@ -1,19 +1,20 @@
 package model
 
 type UserAuthorization struct {
-	Username string
-	Password string
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type UserAuthorizationResponse struct {
-	Token string
+	Token string `json:"token"`
 }
 
 type CreateMeeting struct {
-	Name string
+	Title    string `json:"title"`
+	Password string `json:"password"`
 }
 
 type Meeting struct {
-	ID   string
-	Name string
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hedhyw/semerr/pkg/v1/semerr"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler/model"
 )
@@ -17,7 +16,7 @@ type Handler struct {
 
 func New(db *sql.DB) (*Handler, error) {
 	if db == nil {
-		return nil, semerr.NewInternalServerError(fmt.Errorf("no db"))
+		return nil, fmt.Errorf("no db")
 	}
 
 	return &Handler{
@@ -32,7 +31,7 @@ func (h *Handler) Create(params *model.CreateUser) (*model.User, error) {
 
 	_, err := h.db.Exec("INSERT INTO users (id, name) VALUES ($1, $2)", user.ID, user.Name)
 	if err != nil {
-		return nil, semerr.NewInternalServerError(fmt.Errorf("creating user: %w", err))
+		return nil, fmt.Errorf("creating user: %w", err)
 	}
 
 	return &user, nil
@@ -46,9 +45,9 @@ func (h *Handler) Get(id string) (*model.User, error) {
 		Scan(&user.ID, &user.Name)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, semerr.NewNotFoundError(fmt.Errorf("no such user: %w", err))
+		return nil, fmt.Errorf("no such user: %w", err)
 	} else if err != nil {
-		return nil, semerr.NewInternalServerError(fmt.Errorf("getting user: %w", err))
+		return nil, fmt.Errorf("getting user: %w", err)
 	}
 
 	return &user, nil
@@ -62,9 +61,9 @@ func (h *Handler) GetByName(name string) (*model.User, error) {
 		Scan(&user.ID, &user.Name)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, semerr.NewNotFoundError(fmt.Errorf("no such user: %w", err))
+		return nil, fmt.Errorf("no such user: %w", err)
 	} else if err != nil {
-		return nil, semerr.NewInternalServerError(fmt.Errorf("getting user: %w", err))
+		return nil, fmt.Errorf("getting user: %w", err)
 	}
 
 	return &user, nil

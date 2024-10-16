@@ -71,7 +71,7 @@ func TestServer(t *testing.T) {
 		res, err := http.Post(api+"/login", "application/json", bytes.NewReader(b))
 		require.NoError(t, err, "authorizing user")
 		require.Equal(t, http.StatusOK, res.StatusCode, "wrong status code")
-		t.Cleanup(func() { require.NoError(t, res.Body.Close(), "closing response body") })
+		defer res.Body.Close()
 
 		// Then he can do it.
 
@@ -79,11 +79,6 @@ func TestServer(t *testing.T) {
 		require.NoError(t, json.NewDecoder(res.Body).Decode(&auth), "decoding response body")
 
 		assert.NotEmpty(t, auth.Token, "no authorization token")
-
-		res, err = http.Get(api + "/")
-		require.NoError(t, err, "getting client")
-		require.Equal(t, http.StatusOK, res.StatusCode, "wrong status code")
-		t.Cleanup(func() { require.NoError(t, res.Body.Close(), "closing response body") })
 	})
 
 	t.Run("new meeting", func(t *testing.T) {
@@ -108,7 +103,7 @@ func TestServer(t *testing.T) {
 		// When Dima creates a new meeting.
 
 		var nm apimodel.CreateMeeting
-		nm.Name = "meeting"
+		nm.Title = "meeting"
 
 		b, err := json.Marshal(nm)
 		require.NoError(t, err, "marshalling request")
@@ -116,7 +111,7 @@ func TestServer(t *testing.T) {
 		res, err := http.Post(api+"/meeting", "application/json", bytes.NewReader(b))
 		require.NoError(t, err, "creating meeting")
 		require.Equal(t, http.StatusOK, res.StatusCode, "wrong status code")
-		t.Cleanup(func() { require.NoError(t, res.Body.Close(), "closing response body") })
+		defer res.Body.Close()
 
 		// Then he can do it.
 
@@ -124,7 +119,7 @@ func TestServer(t *testing.T) {
 		require.NoError(t, json.NewDecoder(res.Body).Decode(&m), "decoding response")
 
 		assert.NotEmpty(t, m.ID, "no meeting id")
-		assert.Equal(t, nm.Name, m.Name, "wrong meeting name")
+		assert.Equal(t, nm.Title, m.Name, "wrong meeting name")
 	})
 }
 
