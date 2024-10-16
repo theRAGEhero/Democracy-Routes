@@ -3,8 +3,10 @@ package server_test
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"testing"
@@ -20,9 +22,9 @@ import (
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi"
 	apimodel "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi/model"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/jwthandler"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/meetinghandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/testhelper"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
-	usermodel "github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler/model"
 )
 
 func TestServer(t *testing.T) {
@@ -33,22 +35,13 @@ func TestServer(t *testing.T) {
 
 		db := testhelper.TmpDB(t)
 
-		authH, err := authenticationhandler.New(db)
-		require.NoError(t, err, "creating auth handler")
-
-		userH, err := userhandler.New(db)
-		require.NoError(t, err, "creating user handler")
-
-		jwtH, err := jwthandler.New([]byte("secret"))
-		require.NoError(t, err, "creating jwt handler")
-
-		api := httpApi(t, userH, authH, jwtH)
+		api := httpApi(t, httpApiSettings(t, randomPort(t), db))
 
 		// Given there is a user Dima.
 
 		var buf bytes.Buffer
 
-		err = cli.Run(common.Params{
+		err := cli.Run(common.Params{
 			Args: []string{"create", "user", "-name=Dima", "--pass=secret"},
 			Out:  &buf,
 			DB:   db,
@@ -84,21 +77,18 @@ func TestServer(t *testing.T) {
 	t.Run("new meeting", func(t *testing.T) {
 		t.Parallel()
 
-		t.Skip("TODO: implement")
+		db := testhelper.TmpDB(t)
 
-		userH, err := userhandler.New(testhelper.TmpDB(t))
-		require.NoError(t, err, "creating user handler")
-		api := httpApi(t, nil, nil, nil)
+		api := httpApi(t, httpApiSettings(t, randomPort(t), db))
 
 		// Given there is a user Dima.
 
-		u, err := userH.Create(&usermodel.CreateUser{
-			Name: "Dima",
+		err := cli.Run(common.Params{
+			Args: []string{"create", "user", "-name=Dima", "--pass=secret"},
+			Out:  io.Discard,
+			DB:   db,
 		})
 		require.NoError(t, err, "creating user")
-
-		_, err = userH.Get(u.ID)
-		require.NoError(t, err, "getting user")
 
 		// When Dima creates a new meeting.
 
@@ -119,21 +109,38 @@ func TestServer(t *testing.T) {
 		require.NoError(t, json.NewDecoder(res.Body).Decode(&m), "decoding response")
 
 		assert.NotEmpty(t, m.ID, "no meeting id")
-		assert.Equal(t, nm.Title, m.Name, "wrong meeting name")
+		assert.Equal(t, nm.Title, m.Title, "wrong meeting title")
 	})
 }
 
-func httpApi(tb testing.TB, userH *userhandler.Handler, authH *authenticationhandler.Handler, jwtH *jwthandler.Handler) string {
+func httpApiSettings(tb testing.TB, port int, db *sql.DB) httpapi.Settings {
 	tb.Helper()
 
-	port := randomPort(tb)
+	authH, err := authenticationhandler.New(db)
+	require.NoError(tb, err, "creating auth handler")
 
-	stop, err := httpapi.Start(httpapi.Settings{
+	userH, err := userhandler.New(db)
+	require.NoError(tb, err, "creating user handler")
+
+	jwtH, err := jwthandler.New([]byte("secret"))
+	require.NoError(tb, err, "creating jwt handler")
+
+	meetingH, err := meetinghandler.New(db)
+	require.NoError(tb, err, "creating meeting handler")
+
+	return httpapi.Settings{
 		Port:            port,
 		UserH:           userH,
 		AuthenticationH: authH,
 		JwtH:            jwtH,
-	})
+		MeetingH:        meetingH,
+	}
+}
+
+func httpApi(tb testing.TB, settings httpapi.Settings) string {
+	tb.Helper()
+
+	stop, err := httpapi.Start(settings)
 	require.NoError(tb, err, "starting http api")
 
 	tb.Cleanup(func() {
@@ -142,7 +149,7 @@ func httpApi(tb testing.TB, userH *userhandler.Handler, authH *authenticationhan
 		require.NoError(tb, stop(context.TODO()), "stopping http api")
 	})
 
-	addr := fmt.Sprintf("http://localhost:%d", port)
+	addr := fmt.Sprintf("http://localhost:%d", settings.Port)
 
 	for i := 0; ; i++ {
 		res, _ := http.Get(addr + "/health")

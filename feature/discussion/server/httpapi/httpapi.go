@@ -85,13 +85,18 @@ func Start(settings Settings) (func(ctx context.Context) error, error) {
 			return
 		}
 
-		var m model.Meeting
-		m.ID = "id"
-		m.Name = nm.Title
-
-		settings.MeetingH.Create(meetingmodel.CreateMeeting{
+		meeting, err := settings.MeetingH.Create(meetingmodel.CreateMeeting{
 			Title: nm.Title,
 		})
+		if err != nil {
+			httpError(w, fmt.Errorf("creating meeting: %w", err), http.StatusInternalServerError)
+
+			return
+		}
+
+		var m model.Meeting
+		m.ID = meeting.ID
+		m.Title = meeting.Title
 
 		if err := json.NewEncoder(w).Encode(m); err != nil {
 			httpError(w, fmt.Errorf("encoding response: %w", err), http.StatusInternalServerError)
@@ -128,6 +133,10 @@ func checkSettings(settings Settings) error {
 
 	if settings.JwtH == nil {
 		aErr = errors.Join(aErr, errors.New("jwt handler is not set"))
+	}
+
+	if settings.MeetingH == nil {
+		aErr = errors.Join(aErr, errors.New("meeting handler is not set"))
 	}
 
 	return aErr
