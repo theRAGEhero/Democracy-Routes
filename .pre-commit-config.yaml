@@ -10,7 +10,7 @@ repos:
       - id: check-added-large-files
   - repo: local
     hooks:
-      - id: go tests
-        name: running go tests
-        language: golang
-        entry: go test ./... -race -count=1 -timeout 10s
+      - id: test
+        name: Test the application
+        language: system
+        entry: make test

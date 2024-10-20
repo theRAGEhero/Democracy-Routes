@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/client"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/authenticationhandler"
@@ -36,6 +37,8 @@ func Start(settings Settings) (func(ctx context.Context) error, error) {
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
+
+	authorize := authorizationMiddleware(settings.JwtH)
 
 	mux.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
 		var req model.UserAuthorization
@@ -76,7 +79,7 @@ func Start(settings Settings) (func(ctx context.Context) error, error) {
 		}
 	})
 
-	mux.HandleFunc("POST /meeting", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /meeting", authorize(func(w http.ResponseWriter, r *http.Request) {
 		var nm model.CreateMeeting
 
 		if err := json.NewDecoder(r.Body).Decode(&nm); err != nil {
@@ -103,7 +106,7 @@ func Start(settings Settings) (func(ctx context.Context) error, error) {
 
 			return
 		}
-	})
+	}))
 
 	var srv http.Server
 
@@ -153,4 +156,21 @@ func httpError(w http.ResponseWriter, err error, code int) {
 	w.WriteHeader(code)
 
 	json.NewEncoder(w).Encode(jsonError{Error: err.Error()})
+}
+
+func authorizationMiddleware(jwtH *jwthandler.Handler) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+
+			_, err := jwtH.Verify(token)
+			if err != nil {
+				httpError(w, errors.New("invalid token"), http.StatusUnauthorized)
+
+				return
+			}
+
+			next(w, r)
+		}
+	}
 }

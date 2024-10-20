@@ -90,6 +90,20 @@ func TestServer(t *testing.T) {
 		})
 		require.NoError(t, err, "creating user")
 
+		loginReq, err := json.Marshal(apimodel.UserAuthorization{
+			Username: "Dima",
+			Password: "secret",
+		})
+		require.NoError(t, err, "marshalling authorization request")
+
+		loginRes, err := http.Post(api+"/login", "application/json", bytes.NewReader(loginReq))
+		require.NoError(t, err, "making login request")
+		require.Equal(t, http.StatusOK, loginRes.StatusCode, "wrong status code")
+		defer loginRes.Body.Close()
+
+		var auth apimodel.UserAuthorizationResponse
+		require.NoError(t, json.NewDecoder(loginRes.Body).Decode(&auth), "decoding login response")
+
 		// When Dima creates a new meeting.
 
 		var nm apimodel.CreateMeeting
@@ -98,8 +112,15 @@ func TestServer(t *testing.T) {
 		b, err := json.Marshal(nm)
 		require.NoError(t, err, "marshalling request")
 
-		res, err := http.Post(api+"/meeting", "application/json", bytes.NewReader(b))
-		require.NoError(t, err, "creating meeting")
+		meetingReq, err := http.NewRequest("POST", api+"/meeting", bytes.NewReader(b))
+		require.NoError(t, err, "creating meeting request")
+
+		meetingReq.Header.Set("Authorization", "Bearer "+auth.Token)
+
+		var client http.Client
+
+		res, err := client.Do(meetingReq)
+		require.NoError(t, err, "making create meeting request")
 		require.Equal(t, http.StatusOK, res.StatusCode, "wrong status code")
 		defer res.Body.Close()
 

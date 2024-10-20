@@ -6,5 +6,10 @@ services:
     shm_size: 128mb
     environment:
       POSTGRES_PASSWORD: testing
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 3s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
