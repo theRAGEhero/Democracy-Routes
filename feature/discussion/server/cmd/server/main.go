@@ -14,6 +14,7 @@ import (
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/dbhandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/httpapi"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/jwthandler"
+	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/meetinghandler"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/userhandler"
 )
 
@@ -59,11 +60,17 @@ func run() error {
 		return fmt.Errorf("creating jwt handler: %w", err)
 	}
 
+	meetingH, err := meetinghandler.New(db)
+	if err != nil {
+		return fmt.Errorf("creating meeting handler: %w", err)
+	}
+
 	stop, err := httpapi.Start(httpapi.Settings{
 		Port:            8080,
 		UserH:           userH,
 		AuthenticationH: authenticationH,
 		JwtH:            jwtH,
+		MeetingH:        meetingH,
 	})
 	if err != nil {
 		return fmt.Errorf("starting http api: %w", err)

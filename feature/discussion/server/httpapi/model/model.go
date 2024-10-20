@@ -16,5 +16,5 @@ type CreateMeeting struct {
 
 type Meeting struct {
 	ID    string `json:"id"`
-	Title string `json:"name"`
+	Title string `json:"title"`
 }

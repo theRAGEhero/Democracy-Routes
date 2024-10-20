@@ -2,7 +2,7 @@ let token = "";
 
 window.onload = async () => {
 	let onAuthentication = function(response) {
-		token = response.Token;
+		token = response.token;
 		clearError();
 		removeLoginForm();
 		loadMeetingsForm();
@@ -111,7 +111,7 @@ function loadLoginForm(onSuccess) {
 			const response = await login(JSON.stringify(data));
 			onSuccess(response);
 		} catch (error) {
-			showError(error)
+			showError(error);
 		}
 	});
 }
@@ -135,8 +135,8 @@ function loadMeetingsForm() {
 		const row = document.createElement("tr");
 		const column = document.createElement("td");
 
-		column.textContent = data.Name;
-		row.id = data.ID;
+		column.textContent = data.title;
+		row.id = data.id;
 
 		row.appendChild(column);
 		table.appendChild(row);
@@ -169,7 +169,7 @@ function loadCreateMeetingForm(onSuccess) {
 			const response = await createMeeting(JSON.stringify(data));
 			onSuccess(response);
 		} catch (error) {
-			onError(error)
+			showError(error);
 		}
 	})
 
@@ -202,6 +202,9 @@ async function login(data) {
 async function createMeeting(data) {
 	const response = await fetch("http://localhost:8080/meeting", {
 		method: "POST",
+		headers: {
+			"Authorization": "Bearer " + token
+		},
 		body: data,
 	});
 
