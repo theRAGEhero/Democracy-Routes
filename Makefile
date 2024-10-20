@@ -38,5 +38,5 @@ user:
 
 # Test the application.
 test:
-	#make dev-infra-start
+	make dev-infra-start
 	go test ./... -race -count=1 -timeout 10s
