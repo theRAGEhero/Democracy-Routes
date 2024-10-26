@@ -8,3 +8,5 @@ type Meeting struct {
 	ID    string
 	Title string
 }
+
+type GetMeeting struct{}

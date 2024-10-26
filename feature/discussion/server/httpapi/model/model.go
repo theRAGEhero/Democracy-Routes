@@ -10,8 +10,7 @@ type UserAuthorizationResponse struct {
 }
 
 type CreateMeeting struct {
-	Title    string `json:"title"`
-	Password string `json:"password"`
+	Title string `json:"title"`
 }
 
 type Meeting struct {

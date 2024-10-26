@@ -30,8 +30,36 @@ func (h *Handler) Create(params meetingmodel.CreateMeeting) (*meetingmodel.Meeti
 
 	_, err := h.db.Exec("INSERT INTO meeting (id, title) VALUES ($1, $2)", meeting.ID, meeting.Title)
 	if err != nil {
-		return nil, fmt.Errorf("create meeting: %w", err)
+		return nil, fmt.Errorf("inserting meeting: %w", err)
 	}
 
 	return &meeting, nil
+}
+
+func (h *Handler) Get(params meetingmodel.GetMeeting) ([]meetingmodel.Meeting, error) {
+	rows, err := h.db.Query("SELECT * FROM meeting")
+	if err != nil {
+		return nil, fmt.Errorf("querying rows: %w", err)
+	}
+	defer rows.Close()
+
+	var meetings []meetingmodel.Meeting
+
+	for rows.Next() {
+		var meeting meetingmodel.Meeting
+
+		err = rows.Scan(&meeting.ID, &meeting.Title)
+		if err != nil {
+			return nil, fmt.Errorf("scanning row: %w", err)
+		}
+
+		meetings = append(meetings, meeting)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("scanning rows: %w", err)
+	}
+
+	return meetings, nil
 }

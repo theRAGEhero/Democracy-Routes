@@ -72,7 +72,7 @@ func Start(settings Settings) (func(ctx context.Context) error, error) {
 		var auth model.UserAuthorizationResponse
 		auth.Token = token
 
-		if err := json.NewEncoder(w).Encode(auth); err != nil {
+		if err = json.NewEncoder(w).Encode(auth); err != nil {
 			httpError(w, fmt.Errorf("encoding authorization response: %w", err), http.StatusInternalServerError)
 
 			return
@@ -101,7 +101,31 @@ func Start(settings Settings) (func(ctx context.Context) error, error) {
 		m.ID = meeting.ID
 		m.Title = meeting.Title
 
-		if err := json.NewEncoder(w).Encode(m); err != nil {
+		if err = json.NewEncoder(w).Encode(m); err != nil {
+			httpError(w, fmt.Errorf("encoding response: %w", err), http.StatusInternalServerError)
+
+			return
+		}
+	}))
+
+	mux.HandleFunc("GET /meetings", authorize(func(w http.ResponseWriter, r *http.Request) {
+		meetings, err := settings.MeetingH.Get(meetingmodel.GetMeeting{})
+		if err != nil {
+			httpError(w, fmt.Errorf("getting meetings: %w", err), http.StatusInternalServerError)
+
+			return
+		}
+
+		var ms []model.Meeting
+
+		for _, m := range meetings {
+			ms = append(ms, model.Meeting{
+				ID:    m.ID,
+				Title: m.Title,
+			})
+		}
+
+		if err = json.NewEncoder(w).Encode(ms); err != nil {
 			httpError(w, fmt.Errorf("encoding response: %w", err), http.StatusInternalServerError)
 
 			return

@@ -132,6 +132,133 @@ func TestServer(t *testing.T) {
 		assert.NotEmpty(t, m.ID, "no meeting id")
 		assert.Equal(t, nm.Title, m.Title, "wrong meeting title")
 	})
+
+	t.Run("list meetings", func(t *testing.T) {
+		t.Parallel()
+
+		var h testServerHelper
+		db := testhelper.TmpDB(t)
+		api := httpApi(t, httpApiSettings(t, randomPort(t), db))
+
+		// Given there is a user Dima.
+		h.createUser(t, db, "Dima", "secret")
+		dimaJWT := h.authorizeUser(t, api, "Dima", "secret")
+
+		// And he has meetings A and B.
+		h.createMeeting(t, api, dimaJWT, "A")
+		h.createMeeting(t, api, dimaJWT, "B")
+
+		// And there is a user Alex.
+		h.createUser(t, db, "Alex", "secret")
+		alexJWT := h.authorizeUser(t, api, "Alex", "secret")
+
+		// And he has meetings C and D.
+		h.createMeeting(t, api, alexJWT, "C")
+		h.createMeeting(t, api, alexJWT, "D")
+
+		// When Dima queries meetings.
+		meetings := h.getMeetings(t, api, dimaJWT)
+
+		// Then he sees his meetings A and B.
+		assert.Contains(t, h.meetingTitles(meetings), "A", "no meeting A")
+		assert.Contains(t, h.meetingTitles(meetings), "B", "no meeting B")
+
+		// But he does not see meetings C and D, which belong to Alex.
+		// TODO: show only creator meetings in response.
+
+	})
+}
+
+type testServerHelper struct {
+	client http.Client
+}
+
+func (testServerHelper) createUser(tb testing.TB, db *sql.DB, name, pass string) {
+	tb.Helper()
+
+	err := cli.Run(common.Params{
+		Args: []string{
+			"create",
+			"user",
+			"-name=" + name,
+			"--pass=" + pass,
+		},
+		Out: io.Discard,
+		DB:  db,
+	})
+
+	require.NoError(tb, err, "creating user")
+}
+
+func (testServerHelper) authorizeUser(tb testing.TB, api, name, pass string) string {
+	tb.Helper()
+
+	loginReq, err := json.Marshal(apimodel.UserAuthorization{
+		Username: name,
+		Password: pass,
+	})
+	require.NoError(tb, err, "marshalling authorization request")
+
+	loginRes, err := http.Post(api+"/login", "application/json", bytes.NewReader(loginReq))
+	require.NoError(tb, err, "making login request")
+	require.Equal(tb, http.StatusOK, loginRes.StatusCode, "wrong status code")
+	defer loginRes.Body.Close()
+
+	var auth apimodel.UserAuthorizationResponse
+	require.NoError(tb, json.NewDecoder(loginRes.Body).Decode(&auth), "decoding login response")
+
+	return auth.Token
+}
+
+func (h *testServerHelper) createMeeting(tb testing.TB, api, jwt, title string) {
+	tb.Helper()
+
+	var nm apimodel.CreateMeeting
+	nm.Title = title
+
+	b, err := json.Marshal(nm)
+	require.NoError(tb, err, "marshalling request")
+
+	meetingReq, err := http.NewRequest("POST", api+"/meeting", bytes.NewReader(b))
+	require.NoError(tb, err, "creating meeting request")
+
+	meetingReq.Header.Set("Authorization", "Bearer "+jwt)
+
+	res, err := h.client.Do(meetingReq)
+	require.NoError(tb, err, "making create meeting request")
+	require.Equal(tb, http.StatusOK, res.StatusCode, "wrong status code")
+	defer res.Body.Close()
+
+	var m apimodel.Meeting
+	require.NoError(tb, json.NewDecoder(res.Body).Decode(&m), "decoding response")
+}
+
+func (h *testServerHelper) getMeetings(tb testing.TB, api, jwt string) []apimodel.Meeting {
+	tb.Helper()
+
+	req, err := http.NewRequest("GET", api+"/meetings", nil)
+	require.NoError(tb, err, "creating request")
+
+	req.Header.Set("Authorization", "Bearer "+jwt)
+
+	res, err := h.client.Do(req)
+	require.NoError(tb, err, "making get meetings request")
+	defer res.Body.Close()
+
+	var ms []apimodel.Meeting
+	require.NoError(tb, json.NewDecoder(res.Body).Decode(&ms), "decoding response")
+
+	return ms
+}
+
+func (testServerHelper) meetingTitles(ms []apimodel.Meeting) []string {
+	var titles []string
+
+	for _, m := range ms {
+		titles = append(titles, m.Title)
+	}
+
+	return titles
 }
 
 func httpApiSettings(tb testing.TB, port int, db *sql.DB) httpapi.Settings {

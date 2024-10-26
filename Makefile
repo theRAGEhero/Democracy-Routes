@@ -22,12 +22,11 @@ generate-jwt-secret:
 
 # Start development infrastructure.
 dev-infra-start:
-	make dev-infra-stop
 	@docker compose up --detach --wait
 
 # Stop development infrastructure.
 dev-infra-stop:
-	@docker compose down
+	@docker compose down --remove-orphans
 
 # Create new user.
 # arguments:
