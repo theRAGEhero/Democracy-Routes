@@ -2,14 +2,48 @@ name: dev-infra
 
 services:
   postgres:
-    image: postgres:16.4-alpine3.20
+    image: postgres:17.2-alpine3.21
     shm_size: 128mb
+    user: postgres
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: testing
     healthcheck:
       test: [ "CMD", "pg_isready" ]
-      interval: 3s
+      interval: 5s
       timeout: 5s
       retries: 5
     ports:
       - "5432:5432"
+
+  openfga-migrate:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    image: openfga/openfga:v1.8.4
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:testing@postgres:5432/postgres?sslmode=disable
+    command: migrate
+
+  openfga:
+    depends_on:
+      openfga-migrate:
+        condition: service_completed_successfully
+    image: openfga/openfga:v1.8.4
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:testing@postgres:5432/postgres?sslmode=disable
+      - OPENFGA_DATASTORE_MAX_OPEN_CONNS=30 # postgres sets 100 by default
+      - OPENFGA_PLAYGROUND_ENABLED=true
+    command: run
+    healthcheck:
+      test: [ "CMD", "/usr/local/bin/grpc_health_probe", "-addr=openfga:8081" ]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+    ports:
+      - "8080:6080" # http
+      - "8081:6081" # grpc
+      - "3000:6000" # playground
+      - "2112:6112" # prometheus metrics
