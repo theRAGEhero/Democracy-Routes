@@ -34,8 +34,7 @@ services:
     environment:
       - OPENFGA_DATASTORE_ENGINE=postgres
       - OPENFGA_DATASTORE_URI=postgres://postgres:testing@postgres:5432/postgres?sslmode=disable
-      - OPENFGA_DATASTORE_MAX_OPEN_CONNS=30 # postgres sets 100 by default
-      - OPENFGA_PLAYGROUND_ENABLED=true
+      - OPENFGA_DATASTORE_MAX_OPEN_CONNS=30 # postgres allows 100 by default
     command: run
     healthcheck:
       test: [ "CMD", "/usr/local/bin/grpc_health_probe", "-addr=openfga:8081" ]
@@ -43,7 +42,6 @@ services:
       timeout: 30s
       retries: 3
     ports:
-      - "8080:6080" # http
-      - "8081:6081" # grpc
-      - "3000:6000" # playground
-      - "2112:6112" # prometheus metrics
+      - "6080:8080" # http | you can use a public playground by directing it to your local openfga http port like this https://play.fga.dev/sandbox/?fga_api_host=127.0.0.1%3A6080&fga_api_scheme=http&fga_api_token=
+      - "6081:8081" # grpc
+      - "6112:2112" # prometheus metrics

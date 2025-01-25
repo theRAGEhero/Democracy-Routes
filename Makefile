@@ -36,6 +36,5 @@ user:
 	@go run ./feature/discussion/server/cmd/cli/main.go create user -name="$(name)" -pass="$(pass)"
 
 # Test the application.
-test:
-	make dev-infra-start
+test: dev-infra-start
 	go test ./... -race -count=1 -timeout 10s
