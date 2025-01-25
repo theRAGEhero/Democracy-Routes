@@ -42,6 +42,6 @@ services:
       timeout: 30s
       retries: 3
     ports:
-      - "6080:8080" # http | you can use a public playground by directing it to your local openfga http port like this https://play.fga.dev/sandbox/?fga_api_host=127.0.0.1%3A6080&fga_api_scheme=http&fga_api_token=
+      - "6080:8080" # http | you can use a public playground by directing it to your local openfga instance host like this https://play.fga.dev/sandbox/?fga_api_host=127.0.0.1%3A6080&fga_api_scheme=http&fga_api_token=
       - "6081:8081" # grpc
       - "6112:2112" # prometheus metrics
