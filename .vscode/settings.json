@@ -1,3 +1,9 @@
 {
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+    "go.testFlags": [
+        "-v",
+        "-race",
+        "-count=1",
+        "-timeout=10s"
+    ]
 }

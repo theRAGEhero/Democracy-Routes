@@ -1,16 +1,30 @@
 package testhelper
 
 import (
+	"context"
 	"database/sql"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/openfga/go-sdk/client"
 	"github.com/stretchr/testify/require"
 
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/dbhandler"
 )
+
+const testContextTimeout = 10 * time.Second
+
+func Context(tb testing.TB) context.Context {
+	tb.Helper()
+
+	ctx, cancel := context.WithTimeout(context.Background(), testContextTimeout)
+	tb.Cleanup(cancel)
+
+	return ctx
+}
 
 func TmpDB(tb testing.TB) *sql.DB {
 	tb.Helper()
@@ -51,4 +65,32 @@ func prepareDB(tb testing.TB, db *sql.DB) {
 	tb.Helper()
 
 	require.NoError(tb, dbhandler.PrepareDB(db), "preparing db")
+}
+
+func TmpOfgaClient(tb testing.TB) *client.OpenFgaClient {
+	tb.Helper()
+
+	ctx := Context(tb)
+
+	const apiUrl = "http://localhost:6080"
+
+	ofgaClient, err := client.NewSdkClient(&client.ClientConfiguration{
+		ApiUrl: apiUrl,
+	})
+	require.NoError(tb, err, "creating a client")
+
+	store, err := ofgaClient.CreateStore(ctx).Body(client.ClientCreateStoreRequest{Name: uuid.NewString()}).Execute()
+	require.NoError(tb, err, "creating a store")
+
+	err = ofgaClient.SetStoreId(store.Id)
+	require.NoError(tb, err, "assigning store to the client")
+
+	tb.Cleanup(func() {
+		tb.Helper()
+
+		_, err = ofgaClient.DeleteStore(ctx).Execute()
+		require.NoError(tb, err, "deleting the store")
+	})
+
+	return ofgaClient
 }
