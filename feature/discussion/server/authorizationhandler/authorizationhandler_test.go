@@ -3,7 +3,8 @@ package authorizationhandler_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	openfga "github.com/openfga/go-sdk"
+	"github.com/openfga/go-sdk/client"
 	"github.com/stretchr/testify/require"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/testhelper"
 )
@@ -15,15 +16,47 @@ func TestAuthorizationHandler(t *testing.T) {
 
 	ofgaClient := testhelper.TmpOfgaClient(t)
 
-	storesRes, err := ofgaClient.ListStores(ctx).Execute()
-	require.NoError(t, err, "listing stores")
-
-	storeID, err := ofgaClient.GetStoreId()
-	require.NoError(t, err, "getting client store")
-
-	if assert.Len(t, storesRes.Stores, 1, "wrong number of stores") {
-		assert.Equal(t, storeID, storesRes.Stores[0].Id, "got wrong store")
+	body := client.ClientWriteAuthorizationModelRequest{
+		SchemaVersion: "1.1",
+		TypeDefinitions: []openfga.TypeDefinition{
+			{Type: "user", Relations: &map[string]openfga.Userset{}},
+			{
+				Type: "document",
+				Relations: &map[string]openfga.Userset{
+					"writer": {
+						This: &map[string]interface{}{},
+					},
+					"viewer": {Union: &openfga.Usersets{
+						Child: []openfga.Userset{
+							{This: &map[string]interface{}{}},
+							{ComputedUserset: &openfga.ObjectRelation{
+								Object:   openfga.PtrString(""),
+								Relation: openfga.PtrString("writer"),
+							}},
+						},
+					}},
+				},
+				Metadata: &openfga.Metadata{
+					Relations: &map[string]openfga.RelationMetadata{
+						"writer": {
+							DirectlyRelatedUserTypes: &[]openfga.RelationReference{
+								{Type: "user"},
+							},
+						},
+						"viewer": {
+							DirectlyRelatedUserTypes: &[]openfga.RelationReference{
+								{Type: "user"},
+							},
+						},
+					},
+				},
+			}},
 	}
 
-	// TODO: create an authorization model.
+	data, err := ofgaClient.WriteAuthorizationModel(ctx).Body(body).Execute()
+	require.NoError(t, err, "creating model")
+
+	t.Log(data.AuthorizationModelId)
+
+	// TODO: save this model to OpenFGA DSL as a file and recreate from the saved file.
 }

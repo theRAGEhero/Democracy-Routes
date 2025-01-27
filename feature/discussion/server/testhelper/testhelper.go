@@ -52,6 +52,8 @@ func tmpDB(tb testing.TB) *sql.DB {
 	require.NoError(tb, tdb.Ping(), "pinging temporary db")
 
 	tb.Cleanup(func() {
+		tb.Helper()
+
 		require.NoError(tb, tdb.Close(), "closing temporary db connection")
 		_, err = db.Exec("DROP DATABASE " + tdbn)
 		require.NoError(tb, err, "dropping temporary db")
