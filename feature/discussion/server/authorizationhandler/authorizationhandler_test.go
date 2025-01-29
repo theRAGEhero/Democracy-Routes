@@ -5,6 +5,8 @@ import (
 
 	openfga "github.com/openfga/go-sdk"
 	"github.com/openfga/go-sdk/client"
+	"github.com/openfga/language/pkg/go/transformer"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/theRAGEhero/Democracy-Routes/feature/discussion/server/testhelper"
 )
@@ -58,5 +60,32 @@ func TestAuthorizationHandler(t *testing.T) {
 
 	t.Log(data.AuthorizationModelId)
 
-	// TODO: save this model to OpenFGA DSL as a file and recreate from the saved file.
+	// TODO: read model from OpenFGA DSL string.
+	// It looks like OpenFGA language parsed can't convert from native model to OpenFGA DSL string rught now.
+}
+
+func TestLanguage(t *testing.T) {
+	dslString := `model
+  schema 1.1
+
+type user
+
+type folder
+  relations
+    define viewer: [user]
+`
+
+	generatedJsonString, err := transformer.TransformDSLToJSON(dslString)
+	require.NoError(t, err, "dsl > json")
+
+	generatedDsl, err := transformer.TransformJSONStringToDSL(generatedJsonString)
+	require.NoError(t, err, "json > dsl")
+
+	// generatedProto, err := transformer.TransformDSLToProto(dslString)
+	// require.NoError(t, err, "transforming from dsl to proto")
+
+	// _, err = transformer.TransformJSONProtoToDSL(generatedProto)
+	// require.NoError(t, err, "transforming from proto to dsl")
+
+	assert.Equal(t, dslString, *generatedDsl, "outcome is different")
 }
