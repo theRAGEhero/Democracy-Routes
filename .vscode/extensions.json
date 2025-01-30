@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "alexkrechik.cucumberautocomplete",
-        "hedhyw.golang-gherkingen"
+        "hedhyw.golang-gherkingen",
+        "openfga.openfga-vscode"
     ]
 }

@@ -1,6 +1,7 @@
 package authorizationhandler_test
 
 import (
+	_ "embed"
 	"testing"
 
 	openfga "github.com/openfga/go-sdk"
@@ -64,18 +65,13 @@ func TestAuthorizationHandler(t *testing.T) {
 	// It looks like OpenFGA language parsed can't convert from native model to OpenFGA DSL string rught now.
 }
 
+//go:embed model.fga
+var dslModel string
+
 func TestLanguage(t *testing.T) {
-	dslString := `model
-  schema 1.1
+	t.Parallel()
 
-type user
-
-type folder
-  relations
-    define viewer: [user]
-`
-
-	generatedJsonString, err := transformer.TransformDSLToJSON(dslString)
+	generatedJsonString, err := transformer.TransformDSLToJSON(dslModel)
 	require.NoError(t, err, "dsl > json")
 
 	generatedDsl, err := transformer.TransformJSONStringToDSL(generatedJsonString)
@@ -87,5 +83,5 @@ type folder
 	// _, err = transformer.TransformJSONProtoToDSL(generatedProto)
 	// require.NoError(t, err, "transforming from proto to dsl")
 
-	assert.Equal(t, dslString, *generatedDsl, "outcome is different")
+	assert.Equal(t, dslModel, *generatedDsl, "outcome is different")
 }
